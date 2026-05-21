@@ -1781,13 +1781,6 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3 p-3 rounded-xl bg-zinc-100 dark:bg-white/[0.01] border border-zinc-200 dark:border-white/[0.03]">
-                  <span className="text-cyan-400">📱</span>
-                  <div>
-                    <span className="text-zinc-800 dark:text-zinc-400 font-bold block">Direct Mobile:</span>
-                    <a href="tel:+923165311967" className="text-zinc-950 dark:text-zinc-200 font-semibold hover:text-cyan-500 hover:underline">(+92) 316 531 1967</a>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-zinc-100 dark:bg-white/[0.01] border border-zinc-200 dark:border-white/[0.03]">
                   <span className="text-purple-400">📍</span>
                   <div>
                     <span className="text-zinc-800 dark:text-zinc-400 font-bold block">HQ Operations Location:</span>
