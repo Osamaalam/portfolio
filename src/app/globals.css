@@ -1,0 +1,449 @@
+@import "tailwindcss";
+
+@theme {
+  --color-cyber-teal: #10b981;
+  --color-cyber-blue: #06b6d4;
+  --color-cyber-purple: #8b5cf6;
+  --color-cyber-dark: var(--background);
+  --color-cyber-sec: var(--background-sec);
+  --color-cyber-card: var(--card);
+  --color-cyber-text-title: var(--text-title);
+  --color-cyber-text-muted: var(--text-muted);
+  --font-sans: var(--font-geist-sans), sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
+}
+
+:root {
+  /* Light Theme Variables */
+  --background: #fbfbfd;
+  --background-sec: #f3f4f6;
+  --foreground: #09090b;
+  --card: #ffffff;
+  --card-border: rgba(0, 0, 0, 0.06);
+  --panel-bg: rgba(255, 255, 255, 0.75);
+  --text-muted: #4b5563;
+  --text-title: #09090b;
+  --grid-line: rgba(0, 0, 0, 0.02);
+  --cyber-teal: 16, 185, 129;
+  --cyber-blue: 6, 182, 212;
+}
+
+:root.dark {
+  /* Dark Theme Variables */
+  --background: #030303;
+  --background-sec: #050507;
+  --foreground: #f4f4f5;
+  --card: #0a0a0c;
+  --card-border: rgba(255, 255, 255, 0.05);
+  --panel-bg: rgba(10, 10, 12, 0.7);
+  --text-muted: #a1a1aa;
+  --text-title: #ffffff;
+  --grid-line: rgba(255, 255, 255, 0.015);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  overflow-x: hidden;
+  font-family: var(--font-sans);
+  transition: background-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), color 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Custom Glassmorphism */
+.glass-panel {
+  background: var(--panel-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--card-border);
+  transition: background 0.4s, border-color 0.4s, box-shadow 0.4s;
+}
+
+.glass-panel-hover:hover {
+  background: var(--panel-bg);
+  border-color: rgba(6, 182, 212, 0.2);
+  box-shadow: 0 10px 30px -10px rgba(6, 182, 212, 0.1);
+}
+
+.glass-card {
+  background: var(--panel-bg);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--card-border);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card:hover {
+  background: var(--panel-bg);
+  border-color: rgba(16, 185, 129, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Interactive Grid Background */
+.cyber-grid {
+  background-size: 50px 50px;
+  background-image: 
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+  background-position: center center;
+  transition: background-image 0.4s ease;
+}
+
+.cyber-grid-radial {
+  mask-image: radial-gradient(circle at 50% 50%, black 30%, transparent 80%);
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, black 30%, transparent 80%);
+}
+
+/* Animations */
+@keyframes grid-move {
+  0% {
+    background-position: 0px 0px;
+  }
+  100% {
+    background-position: 50px 50px;
+  }
+}
+
+.animate-grid-move {
+  animation: grid-move 20s linear infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 0.2;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(1.05);
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 10s ease-in-out infinite;
+}
+
+@keyframes scanline {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+.animate-scanline {
+  animation: scanline 8s linear infinite;
+}
+
+/* Premium text glow */
+.text-glow-teal {
+  text-shadow: 0 0 20px rgba(16, 185, 129, 0.1);
+}
+
+:root.dark .text-glow-teal {
+  text-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+}
+
+.text-glow-blue {
+  text-shadow: 0 0 20px rgba(6, 182, 212, 0.1);
+}
+
+:root.dark .text-glow-blue {
+  text-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--card-border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Neon Borders */
+.neon-border-teal {
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.05);
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+:root.dark .neon-border-teal {
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.neon-border-blue {
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.05);
+  border-color: rgba(6, 182, 212, 0.2);
+}
+
+:root.dark .neon-border-blue {
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.1);
+  border-color: rgba(6, 182, 212, 0.3);
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* =============================================================
+   LIGHT MODE READABILITY OVERRIDES
+   Forcing high contrast and elegant design when not in dark mode
+   ============================================================= */
+:root:not(.dark) {
+  background-color: #fbfbfd;
+  color: #1f2937;
+}
+
+/* Headings & Title Texts */
+:root:not(.dark) h1,
+:root:not(.dark) h2,
+:root:not(.dark) h3,
+:root:not(.dark) h4:not(.sh-terminal h4):not(.sh-terminal *):not(.sh-dark-card h4):not(.sh-dark-card *),
+:root:not(.dark) h5,
+:root:not(.dark) .font-extrabold:not(.sh-terminal *):not(.sh-dark-card *):not([class*="hover:text-"]:hover),
+:root:not(.dark) .font-bold:not(.sh-terminal *):not(.sh-dark-card *):not([class*="hover:text-"]:hover),
+:root:not(.dark) .text-white:not(.sh-terminal *):not(.sh-dark-card *):not([class*="hover:text-"]:hover) {
+  color: #0f172a !important; /* Rich deep navy slate instead of white */
+}
+
+/* Paragraphs, descriptions, secondary items */
+:root:not(.dark) p:not(.sh-terminal *):not(.sh-dark-card *):not([class*="hover:text-"]:hover),
+:root:not(.dark) li:not(.sh-terminal *):not(.sh-dark-card *):not([class*="hover:text-"]:hover),
+:root:not(.dark) ul:not(.sh-terminal *):not(.sh-dark-card *):not([class*="hover:text-"]:hover),
+:root:not(.dark) span:not(.font-mono):not(.sh-terminal *):not(.sh-dark-card *):not(.text-emerald-400):not(.text-cyan-400):not(.text-purple-400):not(.text-yellow-500):not(.text-emerald-500):not(.text-cyan-500):not(.text-purple-500):not([class*="hover:text-"]:hover) {
+  color: #374151 !important; /* High contrast charcoal dark gray */
+}
+
+/* Muted secondary descriptions */
+:root:not(.dark) .text-zinc-400:not(.sh-terminal *):not(.sh-dark-card *):not([class*="hover:text-"]:hover),
+:root:not(.dark) .text-zinc-500:not(.sh-terminal *):not(.sh-dark-card *):not([class*="hover:text-"]:hover) {
+  color: #4b5563 !important; /* High-readability cool slate */
+}
+
+/* Ensure timeline item titles are visible */
+:root:not(.dark) .text-zinc-300:not(.sh-terminal *):not(.sh-dark-card *):not([class*="hover:text-"]:hover) {
+  color: #1f2937 !important;
+}
+
+/* Ensure Initiate Handshake button text is extremely dark and readable in light mode */
+:root:not(.dark) .initiate-handshake-btn {
+  color: #09090b !important;
+}
+:root:not(.dark) .initiate-handshake-btn:hover {
+  color: #000000 !important;
+}
+
+/* Ensure Expertise section tabs and Project selector tabs are extremely dark and visible in day/light theme */
+:root:not(.dark) .expertise-tab-btn,
+:root:not(.dark) .project-tab-btn {
+  color: #4b5563 !important; /* Muted dark gray for inactive states */
+}
+
+:root:not(.dark) .expertise-tab-btn:hover,
+:root:not(.dark) .project-tab-btn:hover {
+  color: #000000 !important; /* Pure black on hover */
+  background-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+:root:not(.dark) .expertise-tab-btn.active-tab,
+:root:not(.dark) .project-tab-btn.active-tab {
+  color: #09090b !important; /* Rich deep black for active buttons */
+  background-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+:root:not(.dark) .expertise-tab-btn.active-tab:hover,
+:root:not(.dark) .project-tab-btn.active-tab:hover {
+  color: #000000 !important;
+  background-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Dynamic Panel Backdrops and Borders */
+:root:not(.dark) .glass-panel {
+  background: rgba(255, 255, 255, 0.85) !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 10px 30px -15px rgba(0, 0, 0, 0.03) !important;
+}
+
+:root:not(.dark) .glass-card {
+  background: rgba(255, 255, 255, 0.65) !important;
+  border-color: rgba(0, 0, 0, 0.06) !important;
+  box-shadow: 0 4px 20px -10px rgba(0, 0, 0, 0.02) !important;
+}
+
+/* Grid lines turn light grey */
+:root:not(.dark) .cyber-grid {
+  background-image: 
+    linear-gradient(to right, rgba(0, 0, 0, 0.025) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.025) 1px, transparent 1px) !important;
+}
+
+/* Secure contact input adapts */
+:root:not(.dark) form:not(.sh-terminal *) input,
+:root:not(.dark) form:not(.sh-terminal *) select,
+:root:not(.dark) form:not(.sh-terminal *) textarea {
+  background-color: rgba(0, 0, 0, 0.02) !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+  color: #0f172a !important;
+}
+
+:root:not(.dark) form:not(.sh-terminal *) input::placeholder,
+:root:not(.dark) form:not(.sh-terminal *) textarea::placeholder {
+  color: #9ca3af !important;
+}
+
+/* =============================================================
+   FORCE HIGH-TECH TERMINALS TO STAY GORGEOUS DARK REGARDLESS OF THEME
+   ============================================================= */
+.sh-terminal {
+  background-color: #050507 !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8) !important;
+}
+
+.sh-terminal,
+.sh-terminal * {
+  /* Revert all global light mode overrides inside terminal wrappers */
+  color: inherit;
+}
+
+/* Specific inner background overrides to keep terminal nodes dark */
+.sh-terminal .bg-\[\#050507\],
+.sh-terminal .bg-\[\#040406\],
+.sh-terminal .bg-black,
+.sh-terminal .bg-zinc-950 {
+  background-color: #040406 !important;
+}
+
+.sh-terminal .bg-\[\#0c0c10\] {
+  background-color: #0c0c10 !important;
+}
+
+.sh-terminal .bg-\[\#09090c\] {
+  background-color: #09090c !important;
+}
+
+.sh-terminal .bg-white\/\[0\.02\],
+.sh-terminal .bg-white\/\[0\.01\] {
+  background-color: rgba(255, 255, 255, 0.015) !important;
+}
+
+/* Direct force-revert text color overrides inside terminal wrappers */
+.sh-terminal h4,
+.sh-terminal span.font-bold,
+.sh-terminal .text-white {
+  color: #ffffff !important;
+}
+
+.sh-terminal p,
+.sh-terminal li,
+.sh-terminal span:not(.text-emerald-400):not(.text-cyan-400):not(.text-purple-400):not(.text-yellow-500):not(.text-emerald-500):not(.text-cyan-500):not(.text-purple-500):not(.text-amber-400):not(.text-teal-300):not(.text-purple-300):not(.text-sky-400) {
+  color: #d4d4d8 !important; /* Zinc-300 */
+}
+
+.sh-terminal .text-zinc-300 {
+  color: #d4d4d8 !important;
+}
+
+.sh-terminal .text-zinc-400 {
+  color: #a1a1aa !important; /* Zinc-400 */
+}
+
+.sh-terminal .text-zinc-500,
+.sh-terminal .text-zinc-600 {
+  color: #71717a !important; /* Zinc-500 */
+}
+
+/* Form controls inside terminal */
+.sh-terminal form input,
+.sh-terminal form select,
+.sh-terminal form textarea {
+  background-color: rgba(0, 0, 0, 0.3) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: #f4f4f5 !important;
+}
+
+.sh-terminal form input:focus,
+.sh-terminal form select:focus,
+.sh-terminal form textarea:focus {
+  border-color: rgba(16, 185, 129, 0.4) !important;
+}
+
+.sh-terminal select option {
+  background-color: #0c0c10 !important;
+  color: #f4f4f5 !important;
+}
+
+/* =============================================================
+   FORCE HIGH-TECH COMPONENT CARDS TO STAY GORGEOUS DARK REGARDLESS OF THEME
+   ============================================================= */
+.sh-dark-card,
+.sh-dark-card * {
+  /* Revert all global light mode overrides inside dark cards */
+  color: inherit;
+}
+
+/* Specific inner background overrides to keep dark card nodes dark */
+.sh-dark-card .bg-black {
+  background-color: #000000 !important;
+}
+
+.sh-dark-card .bg-white\/\[0\.02\],
+.sh-dark-card .bg-white\/\[0\.01\] {
+  background-color: rgba(255, 255, 255, 0.015) !important;
+}
+
+/* Direct force-revert text color overrides inside dark card wrappers */
+.sh-dark-card h4,
+.sh-dark-card span.font-bold,
+.sh-dark-card .text-white {
+  color: #ffffff !important;
+}
+
+.sh-dark-card p,
+.sh-dark-card li,
+.sh-dark-card span:not(.text-emerald-400):not(.text-cyan-400):not(.text-purple-400):not(.text-yellow-500):not(.text-emerald-500):not(.text-cyan-500):not(.text-purple-500):not(.text-amber-400):not(.text-teal-300):not(.text-purple-300):not(.text-sky-400) {
+  color: #d4d4d8 !important; /* Zinc-300 */
+}
+
+.sh-dark-card .text-zinc-300 {
+  color: #d4d4d8 !important;
+}
+
+.sh-dark-card .text-zinc-400 {
+  color: #a1a1aa !important; /* Zinc-400 */
+}
+
+.sh-dark-card .text-zinc-500,
+.sh-dark-card .text-zinc-600 {
+  color: #71717a !important; /* Zinc-500 */
+}
