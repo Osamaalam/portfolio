@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { execFile } from "child_process";
 
 export async function POST(request: Request) {
   try {
@@ -26,24 +25,26 @@ export async function POST(request: Request) {
     const baseUrl = "https://n8n.osamaalam.com/webhook/e99b456d-21d3-4553-92b3-e63809712cac";
     const fullUrl = `${baseUrl}?name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&service=${encodeURIComponent(service)}&message=${encodeURIComponent(message)}&source=Portfolio_Website_Hub&timestamp=${encodeURIComponent(new Date().toISOString())}`;
 
-    // Execute native curl.exe with an arguments array (completely secure against shell injection)
-    // This utilizes the native Windows network stack, bypassing Node.js socket DNS IPv6 bottlenecks.
-    const curlArgs = [
-      "-s",
-      "-u", "osamaresponse:paskjewi&hw6",
-      fullUrl
-    ];
+    // Construct Basic Authorization header securely
+    const authString = Buffer.from("osamaresponse:paskjewi&hw6").toString("base64");
 
-    console.log(`Forwarding payload to n8n via native system adapters...`);
+    console.log(`Forwarding payload to n8n via native fetch API...`);
     
-    // We execute this asynchronously in the background so the user gets an instant 200 OK response!
-    execFile("curl.exe", curlArgs, (error, stdout, stderr) => {
-      if (error) {
-        console.error("n8n native forward integration failed:", error.message || error);
-      } else {
-        console.log("n8n native forward response successful:", stdout.trim());
+    // Perform standard HTTP request securely and portably
+    const response = await fetch(fullUrl, {
+      method: "GET",
+      headers: {
+        "Authorization": `Basic ${authString}`,
+        "Accept": "application/json"
       }
     });
+
+    if (!response.ok) {
+      throw new Error(`n8n webhook responded with status ${response.status}`);
+    }
+
+    const responseText = await response.text();
+    console.log("n8n native forward response successful:", responseText.trim());
 
     return NextResponse.json({
       success: true,
