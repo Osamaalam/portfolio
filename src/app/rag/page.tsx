@@ -29,6 +29,33 @@ interface RAGLog {
   message: string;
 }
 
+// Helper to extract only the cited RAG sources mentioned in the generated answer text
+const filterRelevantCitations = (
+  messageContent: string, 
+  citations: { id: number; page: number; score: number }[]
+) => {
+  const lowerText = messageContent.toLowerCase();
+  
+  const citedList = citations.filter((cit, cIdx) => {
+    const blockNum = cIdx + 1;
+    // Look for patterns like "block #1", "block 1", or simple brackets like "[1]"
+    const patterns = [
+      `block #${blockNum}`,
+      `block ${blockNum}`,
+      `[${blockNum}]`,
+    ];
+    return patterns.some(pattern => lowerText.includes(pattern));
+  });
+
+  // If explicit citation patterns are found, display only those cited sources!
+  if (citedList.length > 0) {
+    return citedList;
+  }
+
+  // Fallback: If no explicit citations are parsed in the text, show the top 2 matches to keep it clean
+  return citations.slice(0, 2);
+};
+
 export default function RAGPlayground() {
   // Page load & scripts
   const [pdfjsLoaded, setPdfjsLoaded] = useState<boolean>(false);
@@ -868,9 +895,9 @@ export default function RAGPlayground() {
                             {m.citations && m.citations.length > 0 && (
                               <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-white/[0.04]">
                                 <span className="font-mono text-[9px] text-zinc-500 flex items-center uppercase">Retrieved Sources:</span>
-                                {m.citations.map((cit, cIdx) => (
+                                {filterRelevantCitations(m.content, m.citations).map((cit) => (
                                   <button
-                                    key={cIdx}
+                                    key={cit.id}
                                     type="button"
                                     onClick={() => {
                                       const found = chunks.find(ch => ch.id === cit.id);

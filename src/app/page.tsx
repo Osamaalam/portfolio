@@ -65,7 +65,7 @@ const PROJECTS_DATA: Project[] = [
     period: "2023 - Present",
     metric: "60%",
     metricLabel: "Reduction in Patient Wait Times",
-    description: "EMRChains was founded to resolve access barriers in underserved healthcare systems. We built and deployed specialized diagnostic chatbots and medical imaging classifiers optimized for patient-centric clinical workflows in rural and high-throughput settings.",
+    description: "EMRChains delivers production-ready systems (not demos or prototypes) to resolve clinical throughput barriers. We built and deployed specialized conversational AI & custom chatbots and clinical image classifiers to ensure measurable business impact and ROI, complete with patient-centric clinical workflows and secure AI-powered internal tools & dashboards.",
     highlights: [
       "Engineered clinical diagnostic chatbots resolving 60% of pre-triage delays.",
       "Spearheaded multi-agent clinical workflow designs for non-technical users in rural healthcare units.",
@@ -103,7 +103,7 @@ const PROJECTS_DATA: Project[] = [
     period: "2023 - Present",
     metric: "10x",
     metricLabel: "Speedup in Complex Document Summaries",
-    description: "Engineered high-end autonomous agent clusters and RAG (Retrieval-Augmented Generation) setups for enterprise workflows. Designed specialized multi-agent architectures that leverage role-play, reflection, and secure tools to conduct market analysis, medical research, and data processing autonomously.",
+    description: "I take full ownership and autonomous execution to design high-end autonomous AI agents & multi-agent workflows and high-precision RAG systems & knowledge base Q&A. This engine implements end-to-end workflow & process automation using role-play and self-reflection loops, delivering pragmatic, simple solutions (no over-engineering) built with extreme reliability, testing, and maintainability.",
     highlights: [
       "Architected a custom Python multi-agent system executing self-correcting prompt loops and automated tool execution.",
       "Designed semantic search architectures utilizing hierarchical vector chunking, metadata filters, and cross-encoder rerankers.",
@@ -701,7 +701,7 @@ export default function Home() {
 
               {/* Short professional description */}
               <p className="max-w-2xl mx-auto lg:mx-0 text-base sm:text-lg md:text-xl text-zinc-600 dark:text-zinc-400 font-normal leading-relaxed">
-                I build robust multi-agent orchestration frameworks, self-correcting prompt loops, and high-performance full-stack applications. Bridging advanced machine learning models with secure corporate infrastructure.
+                I build production-ready systems (not demos) delivering measurable ROI. Specialized in autonomous AI agents, high-precision RAG systems, and end-to-end workflow automation with full ownership, pragmatic simple designs, and bulletproof reliability.
               </p>
 
               {/* Actions & Links */}
@@ -1324,7 +1324,7 @@ export default function Home() {
                   Healthcare Clinical AI
                 </h3>
                 <p className="text-zinc-600 dark:text-zinc-400 text-xs md:text-sm leading-relaxed font-normal">
-                  Integration of transfer learning classifiers for medical imaging CT, MRI, Ultrasound. Customized diagnostic assist chatbots and triage workflows mapped to strict clinical evaluation guidelines.
+                  Customized conversational AI & custom chatbots and medical imaging classifiers. We build production-ready systems and high-contrast AI-powered internal tools & dashboards mapped to clinical evaluation guidelines.
                 </p>
               </div>
               <a href="#contact" onClick={() => setContactForm(prev => ({ ...prev, service: "Healthcare AI Systems Integration" }))} className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 group-hover:underline">
@@ -1342,7 +1342,7 @@ export default function Home() {
                   Multi-Agent Task Loop Orchestration
                 </h3>
                 <p className="text-zinc-600 dark:text-zinc-400 text-xs md:text-sm leading-relaxed font-normal">
-                  Design of autonomous pipelines deploying collaborative agent loops. Eliminating human data entry bottlenecks by executing document vector scans (RAG), syntheses, and self-reflecting evaluation logs.
+                  Design of autonomous AI agents & multi-agent workflows executing collaborative loops. We build high-precision RAG systems & knowledge base Q&A to eliminate manual administrative bottlenecks.
                 </p>
               </div>
               <a href="#contact" onClick={() => setContactForm(prev => ({ ...prev, service: "Multi-Agent System Orchestration" }))} className="text-xs font-mono font-bold text-cyan-600 dark:text-cyan-400 group-hover:underline">
@@ -1360,7 +1360,7 @@ export default function Home() {
                   Full-Stack AI Product Engineering
                 </h3>
                 <p className="text-zinc-600 dark:text-zinc-400 text-xs md:text-sm leading-relaxed font-normal">
-                  Architecting modern responsive platforms from zero to high-availability deployment. Connecting responsive Next.js apps with Python cloud APIs, Docker pipelines, and secure Web3 decentralized ledger transactions.
+                  Delivering production-ready systems (not demos or prototypes) with a focus on end-to-end workflow & process automation, pragmatic, simple solutions (no over-engineering), and absolute reliability, testing, and maintainability.
                 </p>
               </div>
               <a href="#contact" onClick={() => setContactForm(prev => ({ ...prev, service: "Full-Stack AI Product Development" }))} className="text-xs font-mono font-bold text-purple-600 dark:text-purple-400 group-hover:underline">

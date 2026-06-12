@@ -13,8 +13,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Osama Alam | AI Architect & Founder",
-  description: "Portfolio of Osama Alam, AI Architect & Founder of EMRChains. Specialized in clinical diagnostic chatbots, medical imaging systems, autonomous multi-agent architectures, and production-grade full-stack AI solutions.",
+  title: "Osama Alam | AI Architect & Founder - Autonomous Agents, RAG & Full-Stack AI",
+  description: "Portfolio of Osama Alam, specializing in Production-Ready Autonomous AI Agents, high-precision Vector RAG Systems, End-to-End Workflow Automation, Conversational Chatbots, and AI-Powered Internal Dashboards. Founder of EMRChains.",
+  keywords: [
+    "Autonomous AI Agents", "Multi-Agent Workflows", "RAG Systems", "Knowledge Base QA", 
+    "Workflow Automation", "Process Automation", "Conversational AI", "Custom Chatbots", 
+    "AI Dashboards", "Production-Ready AI", "AI Systems ROI", "Full-Stack AI Developer"
+  ],
 };
 
 export default function RootLayout({
