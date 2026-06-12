@@ -105,3 +105,28 @@ Stop-Process -Id (Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyCont
 
 * **`.env` Security:** Sensitive keys (like `GEMINI_API_KEY`) are stored in `.env` and kept strictly server-side. **NEVER** expose the API key to client-side page codes (i.e., do not prefix it with `NEXT_PUBLIC_`).
 * **Non-Root Containerization:** The production `Dockerfile` uses Next's standalone build configuration. It runs on a lightweight `node:22-alpine` footprint, completely under a dedicated `nextjs` system user group to enforce a highly hardened sandboxed environment.
+
+---
+
+## 📦 6. Deployment, Version Control & Packaging
+
+### Pushing Code to the Remote Repository:
+* **Protocol:** The repository uses HTTPS (`https://github.com/Osamaalam/portfolio.git`).
+* **Authentication constraint:** GitHub does not support standard password authentication over HTTPS for Git operations. Future non-interactive agents or subagents must prompt the user or instruct them to push manually from their local environment where SSH keys or Personal Access Tokens are pre-configured:
+  ```bash
+  git push origin main
+  ```
+
+### Packaging & Pushing Container Images:
+* **Registry:** GitHub Container Registry (GHCR) at `ghcr.io`.
+* **Package Name & Target:** `ghcr.io/osamaalam/portfolio:latest`
+* **Docker Packaging Command:**
+  To build a clean production standalone image from scratch and tag it correctly:
+  ```bash
+  docker build --no-cache -t ghcr.io/osamaalam/portfolio:latest .
+  ```
+* **Registry Push Command:**
+  Ensure the host terminal is authenticated with `docker login ghcr.io` first, then run:
+  ```bash
+  docker push ghcr.io/osamaalam/portfolio:latest
+  ```
