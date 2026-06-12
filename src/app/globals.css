@@ -307,17 +307,17 @@ body {
     linear-gradient(to bottom, rgba(0, 0, 0, 0.025) 1px, transparent 1px) !important;
 }
 
-/* Secure contact input adapts */
-:root:not(.dark) form:not(.sh-terminal *) input,
-:root:not(.dark) form:not(.sh-terminal *) select,
-:root:not(.dark) form:not(.sh-terminal *) textarea {
-  background-color: rgba(0, 0, 0, 0.02) !important;
-  border-color: rgba(0, 0, 0, 0.1) !important;
-  color: #0f172a !important;
+/* Secure contact input and standalone textareas adapt in day theme */
+:root:not(.dark) input:not(.sh-terminal *):not(.sh-dark-card *),
+:root:not(.dark) select:not(.sh-terminal *):not(.sh-dark-card *),
+:root:not(.dark) textarea:not(.sh-terminal *):not(.sh-dark-card *) {
+  background-color: #ffffff !important;
+  border-color: #d1d5db !important;
+  color: #000000 !important;
 }
 
-:root:not(.dark) form:not(.sh-terminal *) input::placeholder,
-:root:not(.dark) form:not(.sh-terminal *) textarea::placeholder {
+:root:not(.dark) input:not(.sh-terminal *):not(.sh-dark-card *)::placeholder,
+:root:not(.dark) textarea:not(.sh-terminal *):not(.sh-dark-card *)::placeholder {
   color: #9ca3af !important;
 }
 

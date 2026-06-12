@@ -311,6 +311,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<string>("ai-engineering");
   const [activeProject, setActiveProject] = useState<string>("emrchains");
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
+  const [playgroundsDropdownOpen, setPlaygroundsDropdownOpen] = useState<boolean>(false);
   
   // Interactive Live Dashboard States
   const [consoleMode, setConsoleMode] = useState<"agents" | "mri" | "rag">("agents");
@@ -522,9 +523,39 @@ export default function Home() {
             <a href="#timeline" className="hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors">Career Path</a>
             <a href="#testimonials" className="hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors">Testimonials</a>
             <a href="#contact" className="hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors">Contact</a>
-            <Link href="/rag" className="px-3 py-1 rounded bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-purple-400 hover:text-purple-300 font-mono text-xs transition-colors uppercase tracking-wider animate-pulse flex items-center gap-1.5">
-              <span>🧠</span> RAG Sandbox
-            </Link>
+            
+            {/* AI Sandboxes Hover Dropdown */}
+            <div 
+              className="relative"
+              onMouseEnter={() => setPlaygroundsDropdownOpen(true)}
+              onMouseLeave={() => setPlaygroundsDropdownOpen(false)}
+            >
+              <button 
+                onClick={() => setPlaygroundsDropdownOpen(!playgroundsDropdownOpen)}
+                className="px-3 py-1 rounded bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 hover:text-emerald-300 font-mono text-xs transition-all uppercase tracking-wider flex items-center gap-1.5 cursor-pointer"
+              >
+                <span>⚡</span> AI Labs <span className="text-[10px] opacity-75">{playgroundsDropdownOpen ? "▲" : "▼"}</span>
+              </button>
+              
+              {playgroundsDropdownOpen && (
+                <div className="absolute right-0 top-full pt-1.5 z-50 animate-scale-up">
+                  <div className="w-44 rounded-xl border border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-[#07070a] shadow-xl p-1.5 flex flex-col gap-1">
+                    <Link 
+                      href="/agents" 
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-mono text-zinc-700 dark:text-zinc-300 hover:text-white hover:bg-emerald-500 dark:hover:bg-white/[0.03] transition-all"
+                    >
+                      <span>⚡</span> Agent Sandbox
+                    </Link>
+                    <Link 
+                      href="/rag" 
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-mono text-zinc-700 dark:text-zinc-300 hover:text-white hover:bg-purple-500 dark:hover:bg-white/[0.03] transition-all"
+                    >
+                      <span>🧠</span> RAG Sandbox
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
           </nav>
 
           {/* Actions with Day/Night Toggle Switch */}
@@ -633,6 +664,13 @@ export default function Home() {
             >
               Contact
             </a>
+            <Link 
+              href="/agents" 
+              onClick={() => setMobileMenuOpen(false)} 
+              className="text-emerald-500 hover:text-emerald-400 font-mono text-xs font-bold transition-colors py-2.5 block uppercase tracking-wider animate-pulse"
+            >
+              ⚡ Agent Sandbox
+            </Link>
             <Link 
               href="/rag" 
               onClick={() => setMobileMenuOpen(false)} 
