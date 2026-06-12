@@ -364,22 +364,22 @@ body {
   color: #ffffff !important;
 }
 
-.sh-terminal p,
-.sh-terminal li,
-.sh-terminal span:not(.text-emerald-400):not(.text-cyan-400):not(.text-purple-400):not(.text-yellow-500):not(.text-emerald-500):not(.text-cyan-500):not(.text-purple-500):not(.text-amber-400):not(.text-teal-300):not(.text-purple-300):not(.text-sky-400) {
+:root .sh-terminal p,
+:root .sh-terminal li,
+:root .sh-terminal span:not(.text-emerald-400):not(.text-cyan-400):not(.text-purple-400):not(.text-yellow-500):not(.text-emerald-500):not(.text-cyan-500):not(.text-purple-500):not(.text-amber-400):not(.text-teal-300):not(.text-purple-300):not(.text-sky-400) {
   color: #d4d4d8 !important; /* Zinc-300 */
 }
 
-.sh-terminal .text-zinc-300 {
+:root .sh-terminal .text-zinc-300 {
   color: #d4d4d8 !important;
 }
 
-.sh-terminal .text-zinc-400 {
+:root .sh-terminal .text-zinc-400 {
   color: #a1a1aa !important; /* Zinc-400 */
 }
 
-.sh-terminal .text-zinc-500,
-.sh-terminal .text-zinc-600 {
+:root .sh-terminal .text-zinc-500,
+:root .sh-terminal .text-zinc-600 {
   color: #71717a !important; /* Zinc-500 */
 }
 
@@ -429,21 +429,47 @@ body {
   color: #ffffff !important;
 }
 
-.sh-dark-card p,
-.sh-dark-card li,
-.sh-dark-card span:not(.text-emerald-400):not(.text-cyan-400):not(.text-purple-400):not(.text-yellow-500):not(.text-emerald-500):not(.text-cyan-500):not(.text-purple-500):not(.text-amber-400):not(.text-teal-300):not(.text-purple-300):not(.text-sky-400) {
+:root .sh-dark-card p,
+:root .sh-dark-card li,
+:root .sh-dark-card span:not(.text-emerald-400):not(.text-cyan-400):not(.text-purple-400):not(.text-yellow-500):not(.text-emerald-500):not(.text-cyan-500):not(.text-purple-500):not(.text-amber-400):not(.text-teal-300):not(.text-purple-300):not(.text-sky-400) {
   color: #d4d4d8 !important; /* Zinc-300 */
 }
 
-.sh-dark-card .text-zinc-300 {
+:root .sh-dark-card .text-zinc-300 {
   color: #d4d4d8 !important;
 }
 
-.sh-dark-card .text-zinc-400 {
+:root .sh-dark-card .text-zinc-400 {
   color: #a1a1aa !important; /* Zinc-400 */
 }
 
-.sh-dark-card .text-zinc-500,
-.sh-dark-card .text-zinc-600 {
+:root .sh-dark-card .text-zinc-500,
+:root .sh-dark-card .text-zinc-600 {
   color: #71717a !important; /* Zinc-500 */
+}
+
+/* Direct raised specificity rules to preserve diagnostic colors inside terminals/dark-cards */
+:root .sh-terminal .text-red-400,
+:root .sh-dark-card .text-red-400 {
+  color: #f87171 !important; /* Brighter, high-contrast Red */
+}
+
+:root .sh-terminal .text-emerald-400,
+:root .sh-dark-card .text-emerald-400 {
+  color: #34d399 !important; /* Emerald */
+}
+
+:root .sh-terminal .text-yellow-500,
+:root .sh-dark-card .text-yellow-500 {
+  color: #f59e0b !important; /* Yellow */
+}
+
+:root .sh-terminal .text-purple-400,
+:root .sh-dark-card .text-purple-400 {
+  color: #c084fc !important; /* Purple */
+}
+
+:root .sh-terminal .text-cyan-400,
+:root .sh-dark-card .text-cyan-400 {
+  color: #22d3ee !important; /* Cyan */
 }

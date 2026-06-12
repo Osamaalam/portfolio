@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 
 // ==========================================
 // TYPES & DATA DEFINITIONS
@@ -610,6 +611,9 @@ export default function Home() {
             <a href="#timeline" className="hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors">Career Path</a>
             <a href="#testimonials" className="hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors">Testimonials</a>
             <a href="#contact" className="hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors">Contact</a>
+            <Link href="/rag" className="px-3 py-1 rounded bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-purple-400 hover:text-purple-300 font-mono text-xs transition-colors uppercase tracking-wider animate-pulse flex items-center gap-1.5">
+              <span>🧠</span> RAG Sandbox
+            </Link>
           </nav>
 
           {/* Actions with Day/Night Toggle Switch */}
@@ -714,10 +718,17 @@ export default function Home() {
             <a 
               href="#contact" 
               onClick={() => setMobileMenuOpen(false)} 
-              className="text-zinc-700 dark:text-zinc-300 hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors py-2 block"
+              className="text-zinc-700 dark:text-zinc-300 hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors py-2 block border-b border-zinc-100 dark:border-white/[0.02]"
             >
               Contact
             </a>
+            <Link 
+              href="/rag" 
+              onClick={() => setMobileMenuOpen(false)} 
+              className="text-purple-500 hover:text-purple-400 font-mono text-xs font-bold transition-colors py-2.5 block uppercase tracking-wider animate-pulse"
+            >
+              🧠 RAG Sandbox
+            </Link>
             <div className="flex gap-4 pt-4 border-t border-zinc-100 dark:border-white/[0.04]">
               <a 
                 href="https://www.linkedin.com/in/osamaalam-/" 
