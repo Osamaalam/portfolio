@@ -26,7 +26,9 @@ export async function POST(request: Request) {
     const fullUrl = `${baseUrl}?name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&service=${encodeURIComponent(service)}&message=${encodeURIComponent(message)}&source=Portfolio_Website_Hub&timestamp=${encodeURIComponent(new Date().toISOString())}`;
 
     // Construct Basic Authorization header securely
-    const authString = Buffer.from("osamaresponse:paskjewi&hw6").toString("base64");
+    const webhookUser = process.env.N8N_WEBHOOK_USER || "osamaresponse";
+    const webhookPass = process.env.N8N_WEBHOOK_PASS || "paskjewi&hw6";
+    const authString = Buffer.from(`${webhookUser}:${webhookPass}`).toString("base64");
 
     console.log(`Forwarding payload to n8n via native fetch API...`);
     

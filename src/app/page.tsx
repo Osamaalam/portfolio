@@ -2,6 +2,10 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { UpworkLogo, LinkedInLogo } from "@/components/ui/icons";
+import AgentSimulator from "@/components/simulators/AgentSimulator";
+import MRISimulator from "@/components/simulators/MRISimulator";
+import RAGSimulator from "@/components/simulators/RAGSimulator";
 
 // ==========================================
 // TYPES & DATA DEFINITIONS
@@ -290,26 +294,6 @@ const TESTIMONIALS_DATA: Testimonial[] = [
 ];
 
 // ==========================================
-// SVGS & LOGOS (Inline Components)
-// ==========================================
-
-function UpworkLogo({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M18.57 0c-2.37 0-4.32 1.43-5.07 3.42-.8-1.52-1.5-3.08-2.09-4.57H7.8v6.33c0 1.29-.68 1.93-1.63 1.93-.93 0-1.62-.64-1.62-1.93V2.27H.9v6.33c0 3.73 2.5 5.75 5.27 5.75 2.54 0 5.26-1.74 5.26-5.75V7.47c.5 1.13 1.09 2.3 1.76 3.48L11.5 24h3.76l1.24-6.42c1.46.72 2.92.85 3.97.85 3.41 0 4.54-2.5 4.54-5.32V6.13c0-3.66-2.61-6.13-6.44-6.13zm.1 11.83c-.76 0-1.87-.1-3.05-.68l.4-2.09c.3-.12.59-.22.88-.32.61-.2 1.1-.31 1.48-.31 1.5 0 2.21.73 2.21 2.3 0 1.57-.73 3.1-1.92 3.1z"/>
-    </svg>
-  );
-}
-
-function LinkedInLogo({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.779-1.75-1.75s.784-1.75 1.75-1.75 1.75.779 1.75 1.75-.784 1.75-1.75 1.75zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
-    </svg>
-  );
-}
-
-// ==========================================
 // MAIN COMPONENT
 // ==========================================
 
@@ -330,22 +314,6 @@ export default function Home() {
   
   // Interactive Live Dashboard States
   const [consoleMode, setConsoleMode] = useState<"agents" | "mri" | "rag">("agents");
-  
-  // User-friendly Agent loop simulation states
-  const [agentStep, setAgentStep] = useState<number>(0); // 0: Idle, 1: Step 1, 2: Step 2, 3: Step 3, 4: Done
-  const [agentStatusText, setAgentStatusText] = useState<string>("System Idle. Ready to activate agents.");
-  const [agentResultSummary, setAgentResultSummary] = useState<string>("");
-
-  // MRI Simulation States
-  const [mriDepth, setMriDepth] = useState<number>(45);
-  const [mriScanning, setMriScanning] = useState<boolean>(false);
-  const [mriResult, setMriResult] = useState<string>("");
-  
-  // RAG Query states
-  const [ragQuery, setRagQuery] = useState<string>("Summarize company logistics metrics for Q1");
-  const [ragStatus, setRagStatus] = useState<string>("idle");
-  const [ragChunks, setRagChunks] = useState<{ id: string; doc: string; score: number }[]>([]);
-  const [ragResponse, setRagResponse] = useState<string>("");
 
   // Contact Form State
   const [contactForm, setContactForm] = useState({
@@ -379,104 +347,44 @@ export default function Home() {
     }
   }, [contactTerminalLogs]);
 
-  // Clean, visual and fully working Agent Loop Simulation (Layperson-Friendly)
-  const triggerVisualAgentLoop = async () => {
-    if (agentStep > 0 && agentStep < 4) return; // already running
-    
-    setAgentStep(1);
-    setAgentStatusText("Agent 1 (Data Researcher) has started. Searching through corporate folders and databases for Q1 logs...");
-    setAgentResultSummary("");
-    
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setAgentStep(2);
-    setAgentStatusText("Agent 2 (Analyst) is now active. Processing raw figures, checking math accuracy, and weeding out duplicates...");
+  // Auto-sync offline contact form submissions when connection restores
+  useEffect(() => {
+    if (typeof window === "undefined") return;
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setAgentStep(3);
-    setAgentStatusText("Agent 3 (Report Writer) is now formatting. Writing a clear, beautifully written summary report for the team...");
+    const syncOfflineSubmissions = async () => {
+      try {
+        const queue = JSON.parse(localStorage.getItem("offline-contact-submissions") || "[]");
+        if (queue.length === 0) return;
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setAgentStep(4);
-    setAgentStatusText("Pipeline completed successfully!");
-    setAgentResultSummary("✨ Success! In just 6 seconds, the three AI agents successfully collaborated to find, verify, and write a complete 12-page business summary. Handled completely automatically with 100% accuracy!");
-  };
+        console.log(`Connection restored. Syncing ${queue.length} offline contact form submissions...`);
+        
+        for (const item of queue) {
+          try {
+            await fetch("/api/contact", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(item)
+            });
+          } catch (err) {
+            console.error("Error syncing offline contact form:", err);
+          }
+        }
 
-  // Run MRI Scan Segmentation
-  const runMRIScan = async () => {
-    if (mriScanning) return;
-    setMriScanning(true);
-    setMriResult("Calibrating image filters...");
-    
-    await new Promise((res) => setTimeout(res, 900));
-    setMriResult("Normalizing voxel colors & highlighting focus areas...");
-    
-    await new Promise((res) => setTimeout(res, 1200));
-    setMriResult("Running convolutional neural network scans...");
-    
-    await new Promise((res) => setTimeout(res, 1500));
-    const isAnomalous = mriDepth > 30 && mriDepth < 65;
-    if (isAnomalous) {
-      setMriResult(`⚠️ SLICE ISSUE: Minor vascular variance found at depth ${mriDepth}mm. Highlighting target area in red for physician review.`);
-    } else {
-      setMriResult(`✓ SCAN NORMAL: Slice depth ${mriDepth}mm shows perfect, healthy structural alignment.`);
-    }
-    setMriScanning(false);
-  };
+        localStorage.removeItem("offline-contact-submissions");
+        console.log("Successfully synced all offline contact submissions!");
+      } catch (err) {
+        console.error("Failed to sync offline submissions:", err);
+      }
+    };
 
-  // Run RAG Search Simulation with dynamic keyword analysis
-  const runRAGSearch = async () => {
-    if (ragStatus === "searching") return;
-    setRagStatus("searching");
-    setRagChunks([]);
-    setRagResponse("");
-
-    await new Promise((res) => setTimeout(res, 800));
-    setRagStatus("embedding");
-    
-    await new Promise((res) => setTimeout(res, 600));
-    setRagStatus("retrieving");
-
-    // Dynamic chunk and response determination
-    const q = (ragQuery || "").toLowerCase();
-    let mockChunks = [];
-    let mockResponse = "";
-
-    if (q.includes("revenue") || q.includes("sales") || q.includes("financial") || q.includes("profit") || q.includes("saas") || q.includes("money") || q.includes("cost") || q.includes("margin") || q.includes("growth")) {
-      mockChunks = [
-        { id: "saas-deck-doc-1", doc: "SaaS Sales Deck: Recurring revenue rose by 22% quarter-over-quarter. Average customer onboarding speed was shortened to 4 days.", score: 0.894 },
-        { id: "financial-forecast-2", doc: "Operating profit margin improved to 34.5% due to SaaS renewals and enterprise contract expansion.", score: 0.821 }
-      ];
-      mockResponse = "The financial logs indicate that recurring SaaS revenue rose by 22% QoQ. Operating margins improved to 34.5% due to enterprise contract expansions, while client onboarding cycles were reduced to 4 days.";
-    } else if (q.includes("clinical") || q.includes("medical") || q.includes("diagnosis") || q.includes("health") || q.includes("emr") || q.includes("hospital") || q.includes("imaging") || q.includes("patient") || q.includes("wait") || q.includes("triage")) {
-      mockChunks = [
-        { id: "clinical-deploy-doc-1", doc: "Clinical Deployment Log: Diagnostic triage chatbots reduced client wait-time by 60% average. Accuracy verified at 94.2%.", score: 0.931 },
-        { id: "imaging-pipeline-report-2", doc: "Imaging Pipeline Report: Deep convolutional vision classifiers attained 98.4% diagnostic sensitivity on clinical datasets.", score: 0.864 }
-      ];
-      mockResponse = "Clinical deployment data shows diagnostic chatbots successfully cut hospital pre-triage delays by 60% with 94.2% verified confidence. The imaging classifiers achieved a diagnostic sensitivity of 98.4% on clinical datasets.";
-    } else if (q.includes("solidity") || q.includes("contract") || q.includes("blockchain") || q.includes("crypto") || q.includes("wallet") || q.includes("web3") || q.includes("ether") || q.includes("token") || q.includes("audit")) {
-      mockChunks = [
-        { id: "omniledger-solidity-1", doc: "OmniLedger Solidity Spec: Hardhat smart contracts passed security audits with 0 critical or high vulnerability warnings.", score: 0.925 },
-        { id: "web3-wallet-integration-2", doc: "Web3 Wallet Integration logs: MetaMask and WalletConnect sessions achieved sub-second latency across 1,000+ test trades.", score: 0.851 }
-      ];
-      mockResponse = "Web3 logs verify that OmniLedger Solidity smart contracts successfully passed audits with zero critical warnings. Wallet transactions (MetaMask/WalletConnect) operated at sub-second speeds under trade volumes.";
-    } else {
-      // Default / fallback to Logistics
-      mockChunks = [
-        { id: "logistics-doc-1", doc: "Q1 Operations Summary: Final transport logs recorded 98.6% on-time delivery index. Fuel overhead was optimized by 12%.", score: 0.912 },
-        { id: "logistics-doc-2", doc: "Inventory Report: Warehousing storage reached 84% capacity. Optimized transit patterns resolved shipping delays.", score: 0.792 }
-      ];
-      mockResponse = `According to company files, Q1 operations were highly efficient. On-time deliveries hit 98.6%, fuel overhead dropped by 12%, and transit optimization minimized warehousing storage constraints. Matches found for: "${ragQuery || "Q1 Logistics"}".`;
+    window.addEventListener("online", syncOfflineSubmissions);
+    // Also try syncing on mount if online
+    if (navigator.onLine) {
+      syncOfflineSubmissions();
     }
 
-    setRagChunks(mockChunks);
-
-    await new Promise((res) => setTimeout(res, 1000));
-    setRagStatus("generating");
-    
-    await new Promise((res) => setTimeout(res, 1400));
-    setRagResponse(mockResponse);
-    setRagStatus("complete");
-  };
+    return () => window.removeEventListener("online", syncOfflineSubmissions);
+  }, []);
 
   // Preset CLI Commands for Contact Form
   const runContactCLICommand = async (command: string) => {
@@ -555,26 +463,29 @@ export default function Home() {
       }
     } catch {
       await new Promise((res) => setTimeout(res, 800));
+
+      // Real Local Queue Fallback implementation
+      if (typeof window !== "undefined") {
+        try {
+          const queue = JSON.parse(localStorage.getItem("offline-contact-submissions") || "[]");
+          queue.push({ ...contactForm, timestamp: new Date().toISOString() });
+          localStorage.setItem("offline-contact-submissions", JSON.stringify(queue));
+        } catch (storageErr) {
+          console.error("Local storage sync queue error:", storageErr);
+        }
+      }
+
       setContactTerminalLogs((prev) => [
         ...prev,
         `⚠️ NETWORK DISRUPTION: Server route unreachable.`,
-        `[BACKUP] Telemetry recorded locally in offline storage. Osama has been queued.`,
-        `🎉 Success! Osama will be notified once connection stabilizes.`
+        `[BACKUP] Telemetry recorded securely in local storage backup queue.`,
+        `🎉 Success! Local sync queue is active. Osama will be notified automatically once connection stabilizes.`
       ]);
       setContactSuccess(true);
     } finally {
       setIsSendingContact(false);
     }
   };
-
-  // Run initial visual state after hydration/mount completes
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      triggerVisualAgentLoop();
-    }, 100);
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   return (
     <div className="relative min-h-screen w-full bg-cyber-dark text-zinc-800 dark:text-zinc-100 overflow-x-hidden selection:bg-emerald-500/30 selection:text-emerald-300 transition-colors duration-300">
@@ -843,7 +754,7 @@ export default function Home() {
 
             {/* Right Hand: High-End Interactive Simulator Widget */}
             <div className="lg:col-span-5 w-full text-zinc-100">
-              {/* Added 'sh-terminal' class to force pristine dark look in both themes */}
+              {/* Force pristine dark look in both themes */}
               <div className="sh-terminal relative w-full rounded-2xl border border-zinc-200 dark:border-white/[0.08] bg-zinc-950 dark:bg-[#070709]/90 shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.8)] overflow-hidden">
                 
                 {/* Terminal Header */}
@@ -883,253 +794,13 @@ export default function Home() {
                   </button>
                 </div>
 
-                 {/* Main Interactive Screen */}
-                 <div className="px-5 pt-5 pb-8 h-[340px] overflow-y-auto no-scrollbar flex flex-col justify-between bg-[#050507]">
-                  
-                  {/* TAB 1: User-friendly Visual Flowchart Agent Loop */}
-                  {consoleMode === "agents" && (
-                    <div className="flex-1 flex flex-col justify-between min-h-full">
-                      <div className="flex flex-col gap-4">
-                        <div className="text-center sm:text-left mb-1">
-                          <span className="text-[10px] font-mono uppercase text-emerald-400 font-semibold tracking-wider">Multi-Agent Workflow Simulator</span>
-                          <h4 className="text-sm font-bold text-white mt-0.5">How Multiple AI Agents Collaborate</h4>
-                        </div>
-
-                        {/* Interactive flow graph of 3 agents */}
-                        <div className="grid grid-cols-3 gap-3 relative py-2">
-                          {/* Connector lines behind cards */}
-                          <div className="absolute top-[35px] left-[15%] right-[15%] h-0.5 bg-zinc-800 -z-10">
-                            <div 
-                              className="h-full bg-emerald-500 transition-all duration-[4s] ease-linear"
-                              style={{ 
-                                width: agentStep === 0 ? "0%" : agentStep === 1 ? "25%" : agentStep === 2 ? "65%" : "100%",
-                                boxShadow: "0 0 10px #10b981"
-                              }}
-                            ></div>
-                          </div>
-
-                          {/* Agent Card 1 */}
-                          <div className={`p-2.5 rounded-xl border flex flex-col items-center text-center transition-all duration-500 ${agentStep === 1 ? "bg-emerald-500/10 border-emerald-500 scale-105 shadow-[0_0_15px_rgba(16,185,129,0.2)]" : agentStep > 1 ? "bg-[#0a0a0d] border-emerald-500/30 opacity-70" : "bg-[#08080a] border-white/[0.03]"}`}>
-                            <span className="text-lg">🔍</span>
-                            <span className="text-[10px] font-bold text-white mt-1">1. Research</span>
-                            <span className="text-[9px] text-zinc-500 mt-0.5 leading-tight">Searches databases</span>
-                          </div>
-
-                          {/* Agent Card 2 */}
-                          <div className={`p-2.5 rounded-xl border flex flex-col items-center text-center transition-all duration-500 ${agentStep === 2 ? "bg-cyan-500/10 border-cyan-500 scale-105 shadow-[0_0_15px_rgba(6,182,212,0.2)]" : agentStep > 2 ? "bg-[#0a0a0d] border-cyan-500/30 opacity-70" : "bg-[#08080a] border-white/[0.03]"}`}>
-                            <span className="text-lg">🧠</span>
-                            <span className="text-[10px] font-bold text-white mt-1">2. Analyst</span>
-                            <span className="text-[9px] text-zinc-500 mt-0.5 leading-tight">Verifies accuracy</span>
-                          </div>
-
-                          {/* Agent Card 3 */}
-                          <div className={`p-2.5 rounded-xl border flex flex-col items-center text-center transition-all duration-500 ${agentStep === 3 ? "bg-purple-500/10 border-purple-500 scale-105 shadow-[0_0_15px_rgba(139,92,246,0.2)]" : agentStep > 3 ? "bg-[#0a0a0d] border-purple-500/30 opacity-70" : "bg-[#08080a] border-white/[0.03]"}`}>
-                            <span className="text-lg">✍️</span>
-                            <span className="text-[10px] font-bold text-white mt-1">3. Writer</span>
-                            <span className="text-[9px] text-zinc-500 mt-0.5 leading-tight">Drafts report</span>
-                          </div>
-                        </div>
-
-                        {/* Layperson-friendly Status Box */}
-                        <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.05] min-h-[50px] flex items-center justify-center">
-                          <p className="text-xs text-zinc-300 text-center leading-relaxed font-sans">
-                            {agentStep > 0 && agentStep < 4 && (
-                              <span className="inline-block animate-bounce mr-1.5">⚡</span>
-                            )}
-                            {agentStatusText}
-                          </p>
-                        </div>
-
-                        {/* Beautiful final outcome display */}
-                        {agentResultSummary && (
-                          <div className="p-3.5 rounded-xl bg-emerald-500/5 border border-emerald-500/20 text-xs text-emerald-300 leading-relaxed font-sans animate-fade-in">
-                            {agentResultSummary}
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="pt-3 pb-3 border-t border-white/[0.04] flex items-center justify-between">
-                        <span className="text-[10px] text-zinc-500 font-mono">Simulating real business task</span>
-                        <button 
-                          onClick={triggerVisualAgentLoop} 
-                          disabled={agentStep > 0 && agentStep < 4}
-                          className="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-xs shadow-[0_0_15px_rgba(16,185,129,0.2)] disabled:bg-zinc-800 disabled:text-zinc-600 transition-all flex items-center gap-1 cursor-pointer animate-pulse"
-                        >
-                          {agentStep > 0 && agentStep < 4 ? "Running..." : "⚡ Activate Agents"}
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* TAB 2: Scan Segmentation Simulator */}
-                  {consoleMode === "mri" && (
-                    <div className="flex-1 flex flex-col justify-between min-h-full">
-                      <div className="flex flex-col gap-3">
-                        <div className="flex items-center justify-between text-[11px] text-zinc-400 font-mono">
-                          <span>Modality: Vision Pathology Identifier</span>
-                          <span className="text-cyan-400 font-bold">ResNet-50 Node</span>
-                        </div>
-                        
-                        <div className="flex gap-4 items-center p-3 rounded-lg bg-white/[0.02] border border-white/[0.04]">
-                          {/* Brain SVG Cross-section representation */}
-                          <div className="relative w-20 h-20 bg-black rounded-xl border border-white/[0.1] flex items-center justify-center overflow-hidden flex-shrink-0">
-                            {/* Neural SVG structure */}
-                            <svg className="w-16 h-16 text-zinc-800" viewBox="0 0 100 100" fill="none">
-                              <path d="M50 5 C25 5, 10 30, 10 55 C10 80, 25 95, 50 95 C75 95, 90 80, 90 55 C90 30, 75 5, 50 5 Z" stroke="currentColor" strokeWidth="1" strokeDasharray="3 3" />
-                              <path d="M40 40 C35 30, 45 25, 45 45 C45 60, 38 65, 42 75" stroke="#22d3ee" strokeWidth="1.5" className="opacity-50" />
-                              <path d="M60 40 C65 30, 55 25, 55 45 C55 60, 62 65, 58 75" stroke="#22d3ee" strokeWidth="1.5" className="opacity-50" />
-                              {mriDepth > 30 && mriDepth < 65 && (
-                                <circle cx="32" cy="46" r="3" fill="#ef4444" className="animate-ping" />
-                              )}
-                              {mriDepth > 30 && mriDepth < 65 && (
-                                <circle cx="32" cy="46" r="2.5" fill="#ef4444" />
-                              )}
-                            </svg>
-                            {/* Scanning horizontal laser bar */}
-                            <div 
-                              className="absolute left-0 w-full h-0.5 bg-cyan-400/80 shadow-[0_0_10px_#22d3ee] pointer-events-none"
-                              style={{ 
-                                top: `${mriDepth}%`, 
-                                transition: "top 0.1s ease-out"
-                              }}
-                            ></div>
-                          </div>
-
-                          <div className="flex-1 flex flex-col gap-2">
-                            <div className="flex justify-between text-[11px] font-mono">
-                              <span className="text-zinc-500">Scan Cross-section:</span>
-                              <span className="text-cyan-400 font-bold">{mriDepth}mm depth</span>
-                            </div>
-                            <input 
-                              type="range" 
-                              min="10" 
-                              max="90" 
-                              value={mriDepth} 
-                              onChange={(e) => setMriDepth(Number(e.target.value))}
-                              className="w-full accent-cyan-500 h-1.5 bg-zinc-800 rounded-lg cursor-pointer"
-                            />
-                            <p className="text-[9px] text-zinc-500 leading-tight font-sans">
-                              Drag the depth slider. The model triggers alerts if it flags unusual densities in the 30mm - 65mm slice spectrum.
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Analysis Output log */}
-                        <div className="p-3 rounded-lg bg-black border border-white/[0.04] text-[11px] leading-relaxed font-sans">
-                          <span className="text-zinc-500 font-mono">Model Output: </span>
-                          <span className={mriResult.includes("⚠️") ? "text-red-400 font-bold" : mriResult.includes("✓") ? "text-emerald-400 font-medium" : "text-zinc-300"}>
-                            {mriResult || "Ready to evaluate. Drag slider and click start below."}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="pt-3 pb-3 border-t border-white/[0.04] flex items-center justify-between">
-                        <span className="text-[10px] text-zinc-500 font-mono">Hardware: Nvidia CUDA Core</span>
-                        <button 
-                          onClick={runMRIScan} 
-                          disabled={mriScanning}
-                          className="px-4 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-black font-extrabold text-xs shadow-[0_0_15px_rgba(6,182,212,0.2)] disabled:bg-zinc-800 disabled:text-zinc-600 transition-all cursor-pointer animate-pulse"
-                        >
-                          {mriScanning ? "Scanning..." : "🔍 Run Diagnostic"}
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* TAB 3: RAG Retrieval Simulator */}
-                  {consoleMode === "rag" && (
-                    <div className="flex-1 flex flex-col justify-between min-h-full">
-                      <div className="flex flex-col gap-3">
-                        <div className="flex flex-col gap-1 font-mono">
-                          <label className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold">Query Input:</label>
-                          <input 
-                            type="text" 
-                            value={ragQuery} 
-                            onChange={(e) => setRagQuery(e.target.value)}
-                            placeholder="Type business query..."
-                            className="w-full px-3 py-1.5 rounded bg-white/[0.02] border border-white/[0.08] text-zinc-100 font-mono text-xs focus:outline-none focus:border-purple-500/50"
-                          />
-                        </div>
-
-                        {/* RAG Dynamic Suggestion Preset Chips */}
-                        <div className="flex flex-wrap gap-1 mt-0.5 mb-1 select-none">
-                          <button 
-                            type="button"
-                            onClick={() => { setRagQuery("Summarize company logistics metrics for Q1"); setRagChunks([]); setRagResponse(""); setRagStatus("idle"); }}
-                            className="px-2 py-0.5 rounded bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.08] hover:border-purple-500/40 text-[9px] text-zinc-300 font-mono transition-all cursor-pointer"
-                          >
-                            🚚 Logistics
-                          </button>
-                          <button 
-                            type="button"
-                            onClick={() => { setRagQuery("What was the SaaS sales revenue and profit growth?"); setRagChunks([]); setRagResponse(""); setRagStatus("idle"); }}
-                            className="px-2 py-0.5 rounded bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.08] hover:border-purple-500/40 text-[9px] text-zinc-300 font-mono transition-all cursor-pointer"
-                          >
-                            💰 SaaS Sales
-                          </button>
-                          <button 
-                            type="button"
-                            onClick={() => { setRagQuery("Analyze wait-times and imaging diagnosis sensitivity"); setRagChunks([]); setRagResponse(""); setRagStatus("idle"); }}
-                            className="px-2 py-0.5 rounded bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.08] hover:border-purple-500/40 text-[9px] text-zinc-300 font-mono transition-all cursor-pointer"
-                          >
-                            🩺 Healthcare AI
-                          </button>
-                          <button 
-                            type="button"
-                            onClick={() => { setRagQuery("Check smart contract Solidity security audits"); setRagChunks([]); setRagResponse(""); setRagStatus("idle"); }}
-                            className="px-2 py-0.5 rounded bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.08] hover:border-purple-500/40 text-[9px] text-zinc-300 font-mono transition-all cursor-pointer"
-                          >
-                            ⛓️ Web3 Solidity
-                          </button>
-                        </div>
-
-                        {/* Vector Database Chunks output */}
-                        <div className="flex flex-col gap-1.5 font-mono">
-                          <div className="flex justify-between items-center text-[10px] text-zinc-500 font-bold uppercase">
-                            <span>Vector Database Matches</span>
-                            <span className="text-purple-400">Score</span>
-                          </div>
-                          <div className="max-h-[100px] overflow-y-auto no-scrollbar flex flex-col gap-1 p-2 rounded bg-black border border-white/[0.04]">
-                            {ragChunks.length === 0 ? (
-                              <div className="text-zinc-600 text-[11px] text-center py-5 font-sans">
-                                Click Query below to scan document folders.
-                              </div>
-                            ) : (
-                              ragChunks.map((chunk, idx) => (
-                                <div key={idx} className="p-1.5 border-b border-white/[0.02] last:border-0 flex flex-col gap-0.5">
-                                  <div className="flex justify-between text-[9px]">
-                                    <span className="text-purple-400 font-bold">{chunk.id}</span>
-                                    <span className="text-zinc-500">Match: {(chunk.score * 100).toFixed(1)}%</span>
-                                  </div>
-                                  <p className="text-[10px] text-zinc-400 line-clamp-1 italic font-sans">&quot;{chunk.doc}&quot;</p>
-                                </div>
-                              ))
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Generated Summarization Output */}
-                        {ragResponse && (
-                          <div className="p-2.5 rounded bg-[#100b1a]/40 border border-purple-500/10 text-[11px] text-purple-200 leading-relaxed max-h-[80px] overflow-y-auto no-scrollbar font-sans">
-                            <span className="font-bold text-purple-400 font-mono">Synthesized Summary:</span> {ragResponse}
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="pt-2 pb-3 border-t border-white/[0.04] flex items-center justify-between">
-                        <span className="text-[10px] text-zinc-500 font-mono">RAG Vector Search active</span>
-                        <button 
-                          onClick={runRAGSearch} 
-                          disabled={ragStatus === "searching" || ragStatus === "embedding" || ragStatus === "retrieving" || ragStatus === "generating"}
-                          className="px-4 py-2 rounded-lg bg-purple-500 hover:bg-purple-400 text-white font-extrabold text-xs shadow-[0_0_15px_rgba(139,92,246,0.2)] disabled:bg-zinc-800 disabled:text-zinc-600 transition-all cursor-pointer"
-                        >
-                          {ragStatus === "searching" ? "Searching..." : "📂 Query Files"}
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
+                {/* Main Interactive Screen */}
+                <div className="px-5 pt-5 pb-8 h-[340px] overflow-y-auto no-scrollbar flex flex-col justify-between bg-[#050507]">
+                  {consoleMode === "agents" && <AgentSimulator />}
+                  {consoleMode === "mri" && <MRISimulator />}
+                  {consoleMode === "rag" && <RAGSimulator />}
                 </div>
+
               </div>
             </div>
 
@@ -1296,7 +967,8 @@ export default function Home() {
                       <span className="text-white font-bold text-lg md:text-xl font-mono mt-1">94.2%</span>
                     </div>
                     <div className="p-3.5 rounded-xl bg-white/[0.01] border border-white/[0.03] flex flex-col">
-                      <span className="text-zinc-400 font-bold text-sm md:text-base font-mono mt-1.5">14,321</span>
+                      <span className="text-zinc-500 text-[10px] font-mono">PATIENTS</span>
+                      <span className="text-white font-bold text-lg md:text-xl font-mono mt-1">14,321</span>
                     </div>
                   </div>
 
@@ -1832,7 +1504,7 @@ export default function Home() {
 
             {/* Right: Interactive Command/Form terminal */}
             <div className="lg:col-span-7 w-full text-zinc-100">
-              {/* Added 'sh-terminal' class to force pristine dark look in both themes */}
+              {/* Force pristine dark look in both themes */}
               <div className="sh-terminal relative w-full rounded-2xl border border-zinc-200 dark:border-white/[0.08] bg-zinc-950 dark:bg-[#070709] shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.8)] overflow-hidden">
                 
                 {/* Visual Window buttons Header */}

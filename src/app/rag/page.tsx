@@ -350,7 +350,7 @@ export default function RAGPlayground() {
   // RETRIEVAL & GENERATION WITH REASONING CHAIN
   // ==========================================
 
-  // Perform local Cosine Similarity with stop-words filtering and real vector calculations via API
+  // Perform local Cosine Similarity using a background Web Worker
   const localVectorSearch = async (query: string): Promise<{ chunk: RAGChunk; score: number }[]> => {
     addLog("info", `Initiating vector scan for query: "${query}"`);
     
@@ -374,66 +374,38 @@ export default function RAGPlayground() {
     const queryVec = embedData.vectors[0];
     addLog("vector", `Query Embedded: [${queryVec.slice(0, 4).join(", ")}, ...]`);
     
-    // Core stop-words to eliminate false positives in natural conversational queries
-    const stopWords = new Set([
-      "the", "and", "you", "for", "this", "that", "with", "was", "are", "can", "some", "out", 
-      "about", "tell", "what", "how", "who", "why", "where", "when", "your", "has", "have", "had", 
-      "mention", "page", "node", "record", "from", "them", "then", "their", "there", "they"
-    ]);
+    addLog("info", "Offloading cosine similarity and keyword analysis to background Web Worker thread...");
 
-    const queryKeywords = query.toLowerCase()
-      .split(/[^a-zA-Z0-9]+/)
-      .filter(k => k.length > 2 && !stopWords.has(k));
-    
-    addLog("info", `Extracted keywords for indexing: [${queryKeywords.join(", ") || "none"}]`);
+    return new Promise((resolve, reject) => {
+      try {
+        const worker = new Worker(new URL("../../workers/rag.worker.ts", import.meta.url));
+        
+        worker.onmessage = (event) => {
+          const { results, queryKeywords } = event.data;
+          
+          addLog("info", `Extracted keywords for indexing in worker: [${queryKeywords.join(", ") || "none"}]`);
+          addLog("success", `Vector scan complete inside background worker thread. Identified Top-${results.length} semantic overlap nodes.`);
+          
+          results.forEach((res: any, i: number) => {
+            addLog("vector", `Rank ${i+1}: Node #${res.chunk.id} | Page ${res.chunk.page} | Score: ${res.score} | Preview: "${res.chunk.text.substring(0, 35)}..."`);
+          });
+          
+          worker.terminate();
+          resolve(results);
+        };
 
-    // Score each chunk based on term frequency & true cosine similarity logic
-    const scored = chunks.map((chunk) => {
-      let termScore = 0;
-      
-      // Term matching score (representing semantic match)
-      const chunkTextLower = chunk.text.toLowerCase();
-      queryKeywords.forEach((keyword) => {
-        if (chunkTextLower.includes(keyword)) {
-          termScore += 0.45;
-        }
-      });
+        worker.onerror = (err) => {
+          console.error("Worker error:", err);
+          worker.terminate();
+          reject(new Error("Web Worker processing failed."));
+        };
 
-      // True Cosine Similarity calculation over the generated vectors
-      let dotProduct = 0;
-      let magnitudeA = 0;
-      let magnitudeB = 0;
-      
-      for (let j = 0; j < Math.min(queryVec.length, chunk.vector.length); j++) {
-        dotProduct += queryVec[j] * chunk.vector[j];
-        magnitudeA += queryVec[j] * queryVec[j];
-        magnitudeB += chunk.vector[j] * chunk.vector[j];
+        worker.postMessage({ query, queryVec, chunks });
+      } catch (err) {
+        console.error("Failed to spawn background Web Worker:", err);
+        reject(err);
       }
-      
-      const magnitudeProduct = Math.sqrt(magnitudeA) * Math.sqrt(magnitudeB);
-      const cosineSim = magnitudeProduct > 0 ? (dotProduct / magnitudeProduct) : 0;
-      
-      // Combine term match and cosine bonus (max cosine bonus of 0.12)
-      let finalScore = termScore + Math.max(cosineSim, 0) * 0.12;
-      
-      // Clamp score between 0.05 and 0.99
-      finalScore = parseFloat(Math.min(Math.max(finalScore, 0.05), 0.99).toFixed(3));
-
-      return {
-        chunk,
-        score: finalScore
-      };
     });
-
-    // Sort by score descending and return top 3
-    const results = scored.sort((a, b) => b.score - a.score).slice(0, 3);
-    
-    addLog("success", `Vector scan complete. Identified Top-${results.length} semantic overlap nodes.`);
-    results.forEach((res, i) => {
-      addLog("vector", `Rank ${i+1}: Node #${res.chunk.id} | Page ${res.chunk.page} | Score: ${res.score} | Preview: "${res.chunk.text.substring(0, 35)}..."`);
-    });
-
-    return results;
   };
 
   const handleQuerySubmit = async (e: React.FormEvent) => {
@@ -443,6 +415,7 @@ export default function RAGPlayground() {
     const userQuery = queryInput;
     setQueryInput("");
     const startTime = Date.now();
+    const isFirstQuery = requestCount === 0;
 
     // Check request limits first!
     if (!isWhitelisted && requestCount >= maxRequests) {
@@ -541,7 +514,9 @@ export default function RAGPlayground() {
           body: JSON.stringify({
             query: userQuery,
             contexts: retrievedMatches.map(m => m.chunk.text),
-            history: messages // Send conversation history for multi-turn chat!
+            history: messages, // Send conversation history for multi-turn chat!
+            isFirstQuery,
+            clientIP
           }),
           signal: chatController.signal
         });

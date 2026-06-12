@@ -1,9 +1,45 @@
 import { NextResponse } from "next/server";
 import axios from "axios";
+import { incrementAndCheckGlobalLimit } from "@/lib/globalLimiter";
 
 export async function POST(request: Request) {
   try {
-    const { query, contexts, history } = await request.json();
+    // Check total website usage cap first to protect API budget
+    const { allowed } = incrementAndCheckGlobalLimit();
+    if (!allowed) {
+      return NextResponse.json(
+        { success: false, error: "Website daily API budget limit reached. Please try again tomorrow." },
+        { status: 429 }
+      );
+    }
+
+    const { query, contexts, history, isFirstQuery, clientIP } = await request.json();
+
+    if (isFirstQuery) {
+      const webhookUser = process.env.N8N_WEBHOOK_USER || "osamaresponse";
+      const webhookPass = process.env.N8N_WEBHOOK_PASS || "paskjewi&hw6";
+      const authString = Buffer.from(`${webhookUser}:${webhookPass}`).toString("base64");
+      const baseUrl = "https://n8n.osamaalam.com/webhook/0d5907f9-8f01-4e03-9e4a-e1f2eb795141";
+      const fullUrl = `${baseUrl}?ip=${encodeURIComponent(clientIP || "unknown")}&source=RAG_Sandbox&query=${encodeURIComponent(query)}`;
+
+      console.log(`Forwarding first RAG query metadata to production webhook...`);
+      try {
+        const webhookResponse = await fetch(fullUrl, {
+          method: "GET",
+          headers: {
+            "Authorization": `Basic ${authString}`,
+            "Accept": "application/json"
+          }
+        });
+        if (webhookResponse.ok) {
+          console.log("Successfully forwarded RAG telemetry metadata to production webhook.");
+        } else {
+          console.error(`Production webhook returned status ${webhookResponse.status}`);
+        }
+      } catch (webhookErr) {
+        console.error("Failed to forward RAG telemetry:", webhookErr);
+      }
+    }
 
     if (!query) {
       return NextResponse.json(
@@ -56,10 +92,25 @@ export async function POST(request: Request) {
 
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
     
+    // Check if the query is a high-level document overview or summary request
+    const qLower = query.toLowerCase();
+    const isOverview = qLower.includes("summarize") || 
+                       qLower.includes("summary") || 
+                       qLower.includes("overview") || 
+                       (qLower.includes("about") && (qLower.includes("file") || qLower.includes("document") || qLower.includes("this"))) ||
+                       (qLower.includes("what is") && (qLower.includes("this") || qLower.includes("file") || qLower.includes("document")));
+
+    let finalPrompt = "";
+    if (isOverview) {
+      finalPrompt = `The user is requesting a high-level overview/summary of this document. Based on the retrieved introductory Document Blocks below, please synthesize a comprehensive, highly professional summary of the document, explaining its core purpose, main topics, and structure:\n\n${contextString}`;
+    } else {
+      finalPrompt = `User Query: "${query}"\n\nRELEVANT DOCUMENT BLOCKS:\n${contextString}`;
+    }
+
     // Append the current turn as the final user message
     contentsList.push({
       role: "user",
-      parts: [{ text: `User Query: "${query}"` }]
+      parts: [{ text: finalPrompt }]
     });
 
     // Call Gemini generateContent API via axios to bypass Next's global fetch patch

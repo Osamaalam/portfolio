@@ -1,8 +1,18 @@
 import { NextResponse } from "next/server";
 import axios from "axios";
+import { incrementAndCheckGlobalLimit } from "@/lib/globalLimiter";
 
 export async function POST(request: Request) {
   try {
+    // Check total website usage cap first to protect API budget
+    const { allowed } = incrementAndCheckGlobalLimit();
+    if (!allowed) {
+      return NextResponse.json(
+        { success: false, error: "Website daily API budget limit reached. Please try again tomorrow." },
+        { status: 429 }
+      );
+    }
+
     const { texts } = await request.json();
 
     if (!texts || !Array.isArray(texts) || texts.length === 0) {
@@ -22,28 +32,34 @@ export async function POST(request: Request) {
       );
     }
 
-    console.log(`Generating real embeddings using model ${model} for ${texts.length} items via direct REST API...`);
+    console.log(`Generating real batch embeddings using model ${model} for ${texts.length} items via direct REST API...`);
 
-    // Perform parallel embedding requests via axios to bypass Next's global fetch patch
-    const embedPromises = texts.map(async (text: string) => {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:embedContent?key=${apiKey}`;
-      const response = await axios.post(url, {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:batchEmbedContents?key=${apiKey}`;
+    const modelPath = model.startsWith("models/") ? model : `models/${model}`;
+
+    const response = await axios.post(url, {
+      requests: texts.map((text: string) => ({
+        model: modelPath,
         content: {
           parts: [{ text: text }]
         }
-      }, {
-        headers: { "Content-Type": "application/json" },
-        timeout: 12000
-      });
-
-      if (response.data && response.data.embedding && response.data.embedding.values) {
-        return response.data.embedding.values;
-      } else {
-        throw new Error("Invalid embedding response from Google REST API");
-      }
+      }))
+    }, {
+      headers: { "Content-Type": "application/json" },
+      timeout: 20000
     });
 
-    const vectors = await Promise.all(embedPromises);
+    if (!response.data || !response.data.embeddings || !Array.isArray(response.data.embeddings)) {
+      throw new Error("Invalid response format from Google REST API");
+    }
+
+    const vectors = response.data.embeddings.map((item: any) => {
+      if (item && item.values) {
+        return item.values;
+      } else {
+        throw new Error("Embedding values missing in response");
+      }
+    });
 
     return NextResponse.json({
       success: true,
