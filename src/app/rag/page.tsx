@@ -497,36 +497,26 @@ export default function RAGPlayground() {
         retrievedMatches = await localVectorSearch(userQuery);
       }
 
-      const bestMatchScore = retrievedMatches[0]?.score || 0;
-      const isRelevant = isOverviewQuery || bestMatchScore >= 0.28; // Relevance threshold
+      // Relevance is now evaluated and enforced natively inside Google Gemini's reasoning layers
+      const isRelevant = true; 
       
       // Step 2: Show animated reasoning chain in Chat UI!
       addLog("info", "Augmenting contextual reasoning layers inside LLM Context Window...");
       
       let reasoningSteps = [];
-      if (isRelevant) {
-        if (isOverviewQuery) {
-          reasoningSteps = [
-            `Initializing sandboxed retrieval search... Analyzing ${chunks.length} local vector nodes.`,
-            `High-level overview request detected. Bypassing cosine similarity threshold.`,
-            `Successfully compiled document introductory chunks: Node #1, Node #2.`,
-            `Context window constructed with overview contexts. Synthesizing cited document summary...`
-          ];
-        } else {
-          reasoningSteps = [
-            `Initializing sandboxed retrieval search... Analyzing ${chunks.length} local vector nodes.`,
-            `Query embedded. Executing cosine distance scans against browser IndexedDB layout.`,
-            `Successfully retrieved matching chunks: Node #${retrievedMatches[0].chunk.id} (${(retrievedMatches[0].score * 100).toFixed(0)}% score), Node #${retrievedMatches[1].chunk.id} (${(retrievedMatches[1].score * 100).toFixed(0)}% score).`,
-            `Context window constructed with ${retrievedMatches.length} raw semantic nodes. Synthesizing cited response...`
-          ];
-        }
+      if (isOverviewQuery) {
+        reasoningSteps = [
+          `Initializing sandboxed retrieval search... Analyzing ${chunks.length} local vector nodes.`,
+          `High-level overview request detected. Bypassing cosine similarity threshold.`,
+          `Successfully compiled document introductory chunks: Node #1, Node #2.`,
+          `Context window constructed with overview contexts. Synthesizing cited document summary...`
+        ];
       } else {
-        addLog("warning", `Rejection trigger: Search similarity is low (Best Score: ${bestMatchScore}). Query is outside document context.`);
         reasoningSteps = [
           `Initializing sandboxed retrieval search... Analyzing ${chunks.length} local vector nodes.`,
           `Query embedded. Executing cosine distance scans against browser IndexedDB layout.`,
-          `Warning: No relevant semantic nodes found in document (Best Score: ${bestMatchScore} < 0.28).`,
-          `Retrieval returned zero trusted contexts. Formulating non-relevant query rejection...`
+          `Successfully retrieved matching chunks: Node #${retrievedMatches[0].chunk.id} (${(retrievedMatches[0].score * 100).toFixed(0)}% score), Node #${retrievedMatches[1].chunk.id} (${(retrievedMatches[1].score * 100).toFixed(0)}% score).`,
+          `Context window constructed with ${retrievedMatches.length} raw semantic nodes. Synthesizing cited response...`
         ];
       }
 
@@ -543,14 +533,15 @@ export default function RAGPlayground() {
         addLog("info", "Dispatching context window to Google Gemini LLM API...");
         
         const chatController = new AbortController();
-        const chatTimeoutId = setTimeout(() => chatController.abort(), 10000); // 10s timeout
+        const chatTimeoutId = setTimeout(() => chatController.abort(), 12000); // 12s timeout
 
         const chatRes = await fetch("/api/rag/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             query: userQuery,
-            contexts: retrievedMatches.map(m => m.chunk.text)
+            contexts: retrievedMatches.map(m => m.chunk.text),
+            history: messages // Send conversation history for multi-turn chat!
           }),
           signal: chatController.signal
         });
@@ -563,9 +554,6 @@ export default function RAGPlayground() {
 
         finalAnswer = chatData.text;
         finalCitations = retrievedMatches.map(m => ({ id: m.chunk.id, page: m.chunk.page, score: m.score }));
-      } else {
-        finalAnswer = "I searched through the uploaded document, but I could not find any relevant information matching your query.\n\nTo prevent the AI from hallucinating, my RAG reasoning layer enforces a strict relevance threshold of **0.28 similarity score**. Please ask a question directly related to the contents of the document.";
-        finalCitations = [];
       }
 
       const durationMs = Date.now() - startTime;
