@@ -1,3 +1,5 @@
+Updated: 2026-06-15
+
 # 🌐 Interactive AI Portfolio & Autonomous Simulation Hub
 
 <p align="center">
