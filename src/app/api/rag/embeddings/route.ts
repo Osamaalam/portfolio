@@ -4,11 +4,14 @@ import { incrementAndCheckGlobalLimit } from "@/lib/globalLimiter";
 
 export async function POST(request: Request) {
   try {
+    const forwardHeader = request.headers.get("x-forwarded-for");
+    const ip = forwardHeader ? forwardHeader.split(",")[0].trim() : "127.0.0.1";
+
     // Check total website usage cap first to protect API budget
-    const { allowed } = incrementAndCheckGlobalLimit();
+    const { allowed, error } = incrementAndCheckGlobalLimit(ip);
     if (!allowed) {
       return NextResponse.json(
-        { success: false, error: "Website daily API budget limit reached. Please try again tomorrow." },
+        { success: false, error: error || "Website daily API budget limit reached. Please try again tomorrow." },
         { status: 429 }
       );
     }
