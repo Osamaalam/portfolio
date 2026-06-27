@@ -16,12 +16,20 @@ This documentation serves as the **source of truth** for future AI agents, subag
 * The theme uses a class-list-based toggle on the root `<html>` element. 
 * If Light Mode is active, the `.dark` class is removed. If Dark Mode is active, the `.dark` class is added.
 * Theme state is stored and retrieved inside `localStorage` under the key **`portfolio-theme`** (`"light"` or `"dark"`).
-* To prevent rendering/hydration flashes under Next.js SSR, use a **lazy state initializer** inside client-side components:
+* **Tailwind v4 Class-Variant Lock:** To prevent the browser's native dark mode system preferences from overriding and clashing with the manual Day/Night theme toggle, the Tailwind v4 custom class-variant is locked in `globals.css`:
+  ```css
+  @custom-variant dark (&:where(.dark, .dark *));
+  ```
+  This forces all `dark:` helper utilities to trigger **strictly** when the `.dark` class is present on the root element.
+* To prevent rendering/hydration flashes under Next.js SSR, and automatically match system preferred color schemes on first visits, use this **smart state initializer**:
   ```typescript
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     if (typeof window !== "undefined") {
       const savedTheme = localStorage.getItem("portfolio-theme");
-      return savedTheme !== "light";
+      if (savedTheme) {
+        return savedTheme === "dark";
+      }
+      return window.matchMedia("(prefers-color-scheme: dark)").matches;
     }
     return true;
   });
@@ -104,7 +112,7 @@ Stop-Process -Id (Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyCont
 ## 🔒 5. Environment & Security Compliance
 
 * **`.env` Security:** Sensitive keys (like `GEMINI_API_KEY`) are stored in `.env` and kept strictly server-side. **NEVER** expose the API key to client-side page codes (i.e., do not prefix it with `NEXT_PUBLIC_`).
-* **Non-Root Containerization:** The production `Dockerfile` uses Next's standalone build configuration. It runs on a lightweight `node:22-alpine` footprint, completely under a dedicated `nextjs` system user group to enforce a highly hardened sandboxed environment.
+* **Non-Root Containerization:** The production `Dockerfile` uses a Debian-based standalone build configuration (`node:22-bookworm-slim`) optimized for CPU-only deployments. It installs native graphics packages (`libgl1-mesa-glx`) and builds an isolated, non-whitelisted Python virtual environment (`/opt/venv`) with CPU-optimized PyTorch and Ultralytics to prevent host OS leakage.
 
 ---
 
@@ -119,13 +127,14 @@ Stop-Process -Id (Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyCont
 
 ### Packaging & Pushing Container Images:
 * **Registry:** GitHub Container Registry (GHCR) at `ghcr.io`.
-* **Package Name & Target:** `ghcr.io/osamaalam/portfolio:latest`
-* **Docker Packaging Command:**
-  To build a clean production standalone image from scratch and tag it correctly:
+* **Package Target:** `ghcr.io/osamaalam/portfolio:latest`
+* **Automated CI/CD Workflows:** The repository is configured with an automated GitHub Actions deployment workflow at `.github/workflows/deploy.yml`. When pushing to the `main` branch, a GitHub Runner automatically logs into GHCR, builds the standalone Docker image, and publishes it securely.
+* **Manual Packaging Command:**
+  To build and tag the CPU-optimized standalone image locally:
   ```bash
-  docker build --no-cache -t ghcr.io/osamaalam/portfolio:latest .
+  docker build -t ghcr.io/osamaalam/portfolio:latest .
   ```
-* **Registry Push Command:**
+* **Manual Registry Push Command:**
   Ensure the host terminal is authenticated with `docker login ghcr.io` first, then run:
   ```bash
   docker push ghcr.io/osamaalam/portfolio:latest
@@ -133,14 +142,19 @@ Stop-Process -Id (Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyCont
 
 ---
 
-## 👁️ 7. Multi-Engine AI Vision & YOLOE Open-Vocabulary Segmentation Sandbox
+## 👁️ 7. Multi-Engine AI Vision & YOLOe Open-Vocabulary Segmentation Sandbox
 
 The `/vision` page integrates a highly sophisticated computer vision and multimodal pipeline:
 
 ### Multi-Engine Architectural Strategy:
 * **Local Browser OCR (Tesseract.js):** Pulls raw text characters entirely locally in the browser's V8 thread. No server overheads.
 * **Multimodal Vision Q&A (Gemini 3.1):** Leverages `gemini-3.1-flash-lite` to allow users to ask any custom question about the uploaded document (e.g. summarizing charts, describing photos).
-* **Real-Time Open-Vocabulary Segmentation (YOLOE):** Spawns a Python `ultralytics` child process on the server to execute the `yoloe-11s-seg.pt` weights. Users type any target object class, and the backend dynamically filters coordinates, returning precise polygon coordinate masks that paint glowing overlays directly on the WebUI.
+* **Real-Time Open-Vocabulary Segmentation (YOLOe):** Spawns a Python `ultralytics` child process on the server to execute the `yoloe-11s-seg.pt` weights. Users type any target object class, and the backend dynamically filters coordinates, returning precise polygon coordinate masks that paint glowing overlays directly on the WebUI.
+* **Input Sanitization & Abuse Prevention (Rule 8):**
+  * **Size Cap:** Enforces a strict **2 MB image file size limit** on both client and backend API layers.
+  * **File-Type Whitelist:** Only standard image MIME types (`jpeg`, `png`, `webp`) or extensions (`.jpg`, `.jpeg`, `.png`, `.webp`) are accepted.
+  * **Target Sanitization:** Strips all non-alphanumeric, space, comma, or dash characters from the `targetObject` parameter and clips it to `50 characters` max to block shell-argument injections.
+  * **Prompt Length Cap:** Restricts prompt sizes to `1,000 characters` on vision and post-processing APIs to protect token budgets.
 
 ### Stable Canvas Overlay Mathematics:
 To prevent browser layout collapse, the image and canvas overlay use a pure CSS flexbox and relative wrapper:
@@ -151,3 +165,15 @@ To prevent browser layout collapse, the image and canvas overlay use a pure CSS 
 </div>
 ```
 When `drawYoloDetections()` executes, it reads `img.clientWidth` and `img.clientHeight` and styles the canvas's properties (`width`, `height`, `top`, `left`) directly in the DOM. This aligns the masks with pixel-perfect accuracy on all browsers.
+
+---
+
+## 📡 8. CORS-Free Client-Assisted IP Geolocation & Session Caching
+
+To prevent direct third-party geolocation calls from being blocked by browser CORS policies, the portfolio uses a secure, high-performance hybrid tracking architecture:
+
+* **Client IP-Discovery:** The browser makes a fast client-side fetch to `https://api.ipify.org?format=json` (which is CORS-enabled and never blocked) to determine the user's true public IP address.
+* **Server-Side Geolocation Proxy:** The browser relays the IP as a query parameter to `/api/vision/ip?ip=XXX`. The backend Node server queries the high-limit, server-friendly `freeipapi.com` service, bypassing browser CORS constraints and blocking 403 server-block errors entirely.
+* **IP Validation (Rule 8):** The backend runs a strict IPv4/IPv6 regex filter on the incoming parameter to discard any malicious strings.
+* **Session Storage Caching:** Once resolved, the IP and geographic details are saved inside the browser's `sessionStorage`. On subsequent page navigation, hot-reloads, or tab refreshes, the details are loaded instantly from memory in `0ms`, completely eliminating rate-limiting locks and API credit exhaustions.
+* **Secure Fallback:** If the browser or server-side lookups fail, the connection falls back to a neutral, non-whitelisted `"0.0.0.0"` IP address, keeping malicious actors strictly rate-limited to standard quotas.

@@ -541,24 +541,30 @@ export default function Home() {
               
               {playgroundsDropdownOpen && (
                 <div className="absolute right-0 top-full pt-1.5 z-50 animate-scale-up">
-                  <div className="w-44 rounded-xl border  border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-[#07070a] shadow-xl p-1.5 flex flex-col gap-1">
+                  <div className="w-44 rounded-xl border border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-[#07070a] shadow-xl p-1.5 flex flex-col gap-1">
                     <Link 
                       href="/agents" 
-                      className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-mono dark:text-muted-foreground hover:text-white hover:bg-emerald-500 dark:hover:bg-white/[0.03] transition-all"
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-mono text-zinc-700 dark:text-muted-foreground hover:text-white hover:bg-emerald-500 dark:hover:bg-white/[0.03] transition-all"
                     >
                       <span>⚡</span> Agent Sandbox
                     </Link>
                     <Link 
                       href="/rag" 
-                      className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-mono dark:text-muted-foreground hover:text-white hover:bg-purple-500 dark:hover:bg-white/[0.03] transition-all"
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-mono text-zinc-700 dark:text-muted-foreground hover:text-white hover:bg-purple-500 dark:hover:bg-white/[0.03] transition-all"
                     >
                       <span>🧠</span> RAG Sandbox
                     </Link>
                     <Link 
                       href="/vision" 
-                      className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-mono dark:text-muted-foreground hover:text-white hover:bg-cyan-500 dark:hover:bg-white/[0.03] transition-all"
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-mono text-zinc-700 dark:text-muted-foreground hover:text-white hover:bg-cyan-500 dark:hover:bg-white/[0.03] transition-all"
                     >
                       <span>👁️</span> Vision Sandbox
+                    </Link>
+                    <Link 
+                      href="/audio" 
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-mono text-zinc-700 dark:text-muted-foreground hover:text-white hover:bg-amber-500 dark:hover:bg-white/[0.03] transition-all"
+                    >
+                      <span>🎙️</span> Audio Sandbox
                     </Link>
                   </div>
                 </div>
@@ -692,6 +698,13 @@ export default function Home() {
               className="text-cyan-500 hover:text-cyan-400 font-mono text-xs font-bold transition-colors py-2.5 block uppercase tracking-wider animate-pulse"
             >
               👁️ Vision Sandbox
+            </Link>
+            <Link 
+              href="/audio" 
+              onClick={() => setMobileMenuOpen(false)} 
+              className="text-amber-500 hover:text-amber-400 font-mono text-xs font-bold transition-colors py-2.5 block uppercase tracking-wider animate-pulse"
+            >
+              🎙️ Audio Sandbox
             </Link>
             <div className="flex gap-4 pt-4 border-t border-zinc-100 dark:border-white/[0.04]">
               <a 

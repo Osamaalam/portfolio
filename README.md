@@ -1,4 +1,4 @@
-Updated: 2026-06-17
+Updated: 2026-06-27
 
 # 🌐 Interactive AI Portfolio & Autonomous Simulation Hub
 
@@ -11,16 +11,16 @@ Updated: 2026-06-17
 </p>
 
 <p align="center">
-  <a href="https://github.com/Osamaalam/portfolio/actions"><img src="https://img.shields.io/github/actions/workflow/status/Osamaalam/portfolio/build.yml?branch=main&style=flat-square&label=build" alt="Build Status" /></a>
+  <img src="https://img.shields.io/github/actions/workflow/status/Osamaalam/portfolio/deploy.yml?branch=main&style=flat-square&label=deploy" alt="Deploy Status" />
   <a href="https://github.com/Osamaalam/portfolio/pkgs/container/portfolio"><img src="https://img.shields.io/badge/container-ghcr.io-blue?style=flat-square" alt="GHCR" /></a>
   <img src="https://img.shields.io/badge/Next.js-v16.2-black?style=flat-square&logo=next.js" alt="Next.js" />
   <img src="https://img.shields.io/badge/Tailwind_CSS-v4.0-38bdf8?style=flat-square&logo=tailwind-css" alt="Tailwind CSS v4" />
-  <img src="https://img.shields.io/badge/Docker-node:22--alpine-2496ed?style=flat-square&logo=docker" alt="Docker Alpine" />
+  <img src="https://img.shields.io/badge/Docker-Debian_slim-2496ed?style=flat-square&logo=docker" alt="Docker Debian" />
 </p>
 
 ---
 
-Welcome to the official repository of my personal engineering portfolio. This is not just a static showcase, but a **high-fidelity, production-grade interactive platform** designed to simulate and visualize complex multi-agent workflows, vision-based medical diagnostic processing pipelines, and customizable document RAG (Retrieval-Augmented Generation) semantic search engines.
+Welcome to the official repository of my personal engineering portfolio. This is not just a static showcase, but a **high-fidelity, production-grade interactive platform** designed to simulate and visualize complex multi-agent workflows, computer vision (YOLOe segmentations), and customizable document RAG (Retrieval-Augmented Generation) semantic search engines.
 
 🔗 **Explore Live Platform:** [osamaalam.com](https://osamaalam.com) *(or your deployed custom domain)*
 
@@ -46,47 +46,50 @@ Welcome to the official repository of my personal engineering portfolio. This is
 ### 4. 🌗 Premium Neon Adaptable Theme
 * Full, seamless Day and Night themes utilizing CSS custom properties and custom transitions.
 * **Accessibility-First Contrast:** Modified base-class compiler overrides that guarantee 100% visible, high-contrast, and comfortable reading under any lighting, while fully preserving rich color hover-state animations.
+* **Tailwind v4 specificity-locking:** Forced CSS custom class mapping to prevent automatic browser overrides from bleeding into dark tech terminals.
 
 ### 5. 📬 Secure Portable Lead Capture (n8n Integration)
 * Next.js API endpoint (`/api/contact`) that securely packages customer contact information.
 * Replaced native process calls with modern, highly portable Node.js `fetch` APIs using secure Base64 Basic Authentication to forward inquiries asynchronously to my **n8n orchestration workflow**.
 
-### 6. 👁️ Multi-Engine AI Vision & YOLOv11 Segmentation Sandbox
+### 6. 👁️ Multi-Engine AI Vision & YOLOe Segmentation Sandbox
 * **Client-Bound Tesseract.js**: Client-bound, fully local, private browser-side text extraction executing natively in browser memory.
-* **Gemini 3.1 Flash-Lite Vision**: Multimodal visual analysis allowing users to upload documents and type custom questions to get structured markdown reports or summaries.
-* **Real YOLOv11 Instance Segmentation**: Spawns a Python `ultralytics` model instance on the server to execute `yoloe-11s-seg.pt` on your uploaded image, dynamically isolating and painting glowing translucent masks matching your specific named target object (e.g. `laptop`, `cup`).
+* **Vision LLM Q&A**: Multimodal visual analysis allowing users to upload documents and type custom questions to get structured markdown reports or summaries.
+* **Real YOLOe Instance Segmentation**: Spawns a Python `ultralytics` model instance on the server to execute `yoloe-11s-seg.pt` on your uploaded image, dynamically isolating and painting glowing translucent masks matching your specific named target object (e.g. `laptop`, `cup`).
+
+### 7. 🎙️ AI Speech & Audio Processing Sandbox
+* **Audio-to-Text Transcription:** Ingests your uploaded audio file (mp3, wav, m4a up to 2MB) and transcribes it natively via a fast backend multimodal decoder socket.
+* **Factual Text Restructuring:** Feeds raw transcription outputs directly into a paid, semantic note compiler to convert loose speech streams into beautifully structured study-notes, summaries, or reports based on custom instructions.
 
 ---
 
 ## 🛠️ Stack & Technologies
 
 * **Frontend Framework:** Next.js v16.2 (App Router with Turbopack compilation)
-* **Styling & Transitions:** Tailwind CSS v4.0 (Utilizing modern native CSS variable themes)
+* **Styling & Transitions:** Tailwind CSS v4.0 (Utilizing custom class-based dark variant)
 * **Runtime & Package Manager:** Node.js v22 & npm v10.9
-* **Containerization:** Docker Multi-stage standalone pipeline (`node:22-alpine` target)
+* **Containerization:** Debian-based standalone pipeline (`node:22-bookworm-slim` with Python virtual environments, PyTorch CPU, and Ultralytics)
 * **CI/CD & Registries:** GitHub Actions & GitHub Container Registry (`ghcr.io`)
 
 ---
 
 ## 📦 Docker Containerization & Deployment
 
-This project utilizes a highly optimized **multi-stage build workflow** that outputs an extremely small and secure production-grade container. By leveraging Next.js **standalone build outputs**, the final image is **only 305 MB** (over 70% smaller than a standard build).
+This project utilizes a highly optimized **multi-stage build workflow** that outputs a standalone production-grade container. By leveraging Next.js **standalone build outputs** and CPU-only PyTorch libraries, the final image is extremely fast, highly compatible, and packages your deep-learning YOLOe weights securely.
+
+### Launch with Docker Compose (Recommended)
+We provide a pre-configured `docker-compose.yml` to spin up the container as a detached background daemon with auto-restart:
+```bash
+# 1. Pull the fresh image from GHCR
+docker compose pull
+
+# 2. Launch the container
+docker compose up -d
+```
 
 ### Pull the Image from GitHub Container Registry
 ```bash
 docker pull ghcr.io/osamaalam/portfolio:latest
-```
-
-### Run the Container Locally
-```bash
-docker run -d -p 3000:3000 --name portfolio-site ghcr.io/osamaalam/portfolio:latest
-```
-Open your browser and navigate to `http://localhost:3000`.
-
-### Building the Container Locally (Multi-Stage)
-If you make modifications and want to rebuild the container:
-```bash
-docker build -t osama-portfolio:latest .
 ```
 
 ---
@@ -97,9 +100,9 @@ Follow these steps to run and develop the portfolio locally:
 
 ### 1. Prerequisites
 * **Node.js (>= 20.9)** and **npm** package manager.
-* **Python (>= 3.8)** and **pip** (required if you wish to run local YOLOv11 segmentations):
+* **Python (>= 3.8)** and **pip** (required if you wish to run local YOLOe segmentations):
   ```bash
-  pip install ultralytics
+  pip install ultralytics torch torchvision
   ```
 
 ### 2. Installation
@@ -135,9 +138,9 @@ npm run start
 ## 🔒 Security & Code Compliance
 
 This project enforces modern, bulletproof engineering standards:
-* **Strict Non-Root Containerization:** The production container runs under the dedicated `nextjs` system user group to prevent privilege escalation.
-* **Safe Input Sanitization:** Dynamic inputs across RAG simulators and contact form blocks are fully sanitized and encapsulated to eliminate script injection.
-* **Portable API Routes:** Removed all system-dependent native terminal bindings in favor of native JavaScript Web API protocols, ensuring the server runs smoothly in any host OS.
+* **Strict Non-Root Isolation:** Spawns backend deep-learning scripts inside isolated sub-processes.
+* **Safe Input Sanitization:** All dynamic API inputs (Target Object, Prompts, Queries, Contact Data) are strictly truncated and regex-sanitized on the backend to eliminate injection vectors.
+* **CORS-Free Geolocation Cache:** Integrates a secure client-assisted server-side proxy mapped with `sessionStorage` caching, saving your external API budget and completely avoiding browser CORS blocks.
 
 ---
 

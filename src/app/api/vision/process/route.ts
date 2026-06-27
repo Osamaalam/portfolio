@@ -4,13 +4,12 @@ import fs from "fs";
 import path from "path";
 import os from "os";
 import axios from "axios";
-import { incrementAndCheckGlobalLimit } from "@/lib/globalLimiter";
+import { incrementAndCheckGlobalLimit, getClientIP } from "@/lib/globalLimiter";
 
 export async function POST(request: Request) {
   let tempFilePath = "";
   try {
-    const forwardHeader = request.headers.get("x-forwarded-for");
-    const ip = forwardHeader ? forwardHeader.split(",")[0].trim() : "127.0.0.1";
+    const ip = getClientIP(request.headers);
 
     const { allowed, error } = incrementAndCheckGlobalLimit(ip);
     if (!allowed) {

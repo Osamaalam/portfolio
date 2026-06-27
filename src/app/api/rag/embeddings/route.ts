@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
 import axios from "axios";
-import { incrementAndCheckGlobalLimit } from "@/lib/globalLimiter";
+import { incrementAndCheckGlobalLimit, getClientIP } from "@/lib/globalLimiter";
 
 export async function POST(request: Request) {
   try {
-    const forwardHeader = request.headers.get("x-forwarded-for");
-    const ip = forwardHeader ? forwardHeader.split(",")[0].trim() : "127.0.0.1";
+    const ip = getClientIP(request.headers);
 
     // Check total website usage cap first to protect API budget
     const { allowed, error } = incrementAndCheckGlobalLimit(ip);

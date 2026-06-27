@@ -31,7 +31,8 @@ export function incrementAndCheckGlobalLimit(ipAddress?: string): { allowed: boo
   }
 
   // 2. Enforce IP-based rate limiting
-  const clientIP = ipAddress || "unknown";
+  let clientIP = ipAddress || "unknown";
+  if (clientIP === "::1") clientIP = "127.0.0.1"; // Normalize IPv6 loopback (Rule 8)
   const isWhitelisted = WHITELISTED_IPS.includes(clientIP);
 
   if (clientIP !== "unknown" && !isWhitelisted) {
@@ -68,4 +69,50 @@ export function incrementAndCheckGlobalLimit(ipAddress?: string): { allowed: boo
   state.count += 1;
   console.log(`[RATE LIMITER] Request authorized. Global daily usage: ${state.count} / ${GLOBAL_DAILY_CAP}`);
   return { allowed: true, currentCount: state.count };
+}
+
+export function getIPCount(ipAddress?: string): number {
+  const today = new Date().toISOString().split("T")[0];
+  let clientIP = ipAddress || "unknown";
+  if (clientIP === "::1") clientIP = "127.0.0.1"; // Normalize IPv6 loopback (Rule 8)
+
+  if (clientIP === "unknown" || WHITELISTED_IPS.includes(clientIP)) {
+    return 0; // Whitelisted or invalid IPs have 0 counted usage
+  }
+
+  if (ipRegistry[clientIP] && ipRegistry[clientIP].date === today) {
+    return ipRegistry[clientIP].count;
+  }
+
+  return 0; // No usage yet today
+}
+
+export function getClientIP(headers: Headers): string {
+  // 1. Cloudflare secure connecting IP header (Rule 8 - un-spoofable)
+  let ip = headers.get("cf-connecting-ip");
+  if (ip) {
+    ip = ip.trim();
+    if (ip === "::1") return "127.0.0.1";
+    return ip;
+  }
+
+  // 2. Nginx real IP header (Rule 8)
+  ip = headers.get("x-real-ip");
+  if (ip) {
+    ip = ip.trim();
+    if (ip === "::1") return "127.0.0.1";
+    return ip;
+  }
+
+  // 3. Forward proxy chain (Rule 8)
+  const xForwardedFor = headers.get("x-forwarded-for");
+  if (xForwardedFor) {
+    const clientIp = xForwardedFor.split(",")[0].trim();
+    if (clientIp) {
+      if (clientIp === "::1") return "127.0.0.1";
+      return clientIp;
+    }
+  }
+
+  return "127.0.0.1";
 }

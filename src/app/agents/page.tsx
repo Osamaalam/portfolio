@@ -211,6 +211,7 @@ const LOCAL_PRESET_CACHE: Record<string, Record<string, any>> = {
 
 export default function AgentsPlayground() {
   const [isClient, setIsClient] = useState<boolean>(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
   
   // Theme state initialized to a static default (dark-first) to prevent SSR hydration mismatches
   const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
@@ -245,6 +246,12 @@ export default function AgentsPlayground() {
   const [ipLocation, setIpLocation] = useState<string>("Secure Workspace");
   const [usageCount, setUsageCount] = useState<number>(0);
   const maxUsage = 5;
+
+  // Helper to load/save daily usage count (Rule 8)
+  const getDailyUsageKey = () => {
+    const today = new Date().toISOString().split("T")[0];
+    return `portfolio-usage-agents-${today}`;
+  };
 
   // Playground Configuration States
   const [scenario, setScenario] = useState<"engineering" | "marketing" | "operations">("engineering");
@@ -297,12 +304,58 @@ export default function AgentsPlayground() {
   // Initial IP load & logger
   useEffect(() => {
     addLog("SYSTEM", "info", "Autonomous Multi-Agent Orchestrator Sandbox initialized.");
+    
+    // Load daily usage from localStorage if present to prevent page refresh/dev restart reset
+    if (typeof window !== "undefined") {
+      const usageKey = getDailyUsageKey();
+      const stored = localStorage.getItem(usageKey);
+      if (stored) {
+        setUsageCount(parseInt(stored, 10));
+      } else {
+        setUsageCount(0);
+        // Prune older portfolio-usage-agents keys to avoid cluttering localStorage
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith("portfolio-usage-agents-") && key !== usageKey) {
+            localStorage.removeItem(key);
+          }
+        }
+      }
+    }
+
     fetchIPAddress();
   }, []);
 
-  // Fetch Public IP securely via CORS-free backend proxy (Rule 8)
+  // Fetch Public IP securely via CORS-free backend proxy with high-performance Session Caching (Rule 8)
   const fetchIPAddress = async () => {
     try {
+      // 1. Check if IP is already cached in this tab session
+      if (typeof window !== "undefined") {
+        const cachedIp = sessionStorage.getItem("portfolio-client-ip");
+        const cachedGeo = sessionStorage.getItem("portfolio-client-geo");
+        
+        if (cachedIp && cachedGeo) {
+          setClientIP(cachedIp);
+          setIpLocation(cachedGeo);
+          
+          // Re-fetch the latest live server usage count to sync browsers (CORS-proof & instant)
+          const resCount = await fetch(`/api/vision/ip?ip=${cachedIp}`);
+          if (resCount.ok) {
+            const dataCount = await resCount.json();
+            const backendCount = dataCount.usageCount || 0;
+            const usageKey = getDailyUsageKey();
+            const stored = localStorage.getItem(usageKey);
+            const localCount = stored ? parseInt(stored, 10) : 0;
+            const finalCount = Math.max(localCount, backendCount);
+            setUsageCount(finalCount);
+            localStorage.setItem(usageKey, finalCount.toString());
+          }
+          
+          addLog("SYSTEM", "info", `Session Cache Hit: Loaded IP ${cachedIp} from memory.`);
+          return; // Zero API hits!
+        }
+      }
+
       let clientPublicIp = "";
       try {
         const ipifyRes = await fetch("https://api.ipify.org?format=json");
@@ -318,18 +371,45 @@ export default function AgentsPlayground() {
       const res = await fetch(backendUrl);
       if (res.ok) {
         const data = await res.json();
-        setClientIP(data.ip || "127.0.0.1");
-        setIpLocation(`${data.city || "Doha"}, ${data.country_name || "QA"}`);
-        const stored = localStorage.getItem(`agents-usage-${data.ip}`);
-        if (stored) setUsageCount(parseInt(stored, 10));
-        addLog("SYSTEM", "info", `Authenticated secure node connection from IP ${data.ip}`);
+        const resolvedIp = data.ip || "127.0.0.1";
+        const resolvedGeo = `${data.city || "Doha"}, ${data.country_name || "QA"}`;
+
+        setClientIP(resolvedIp);
+        setIpLocation(resolvedGeo);
+        
+        const backendCount = data.usageCount || 0;
+        const usageKey = getDailyUsageKey();
+        let localCount = 0;
+        if (typeof window !== "undefined") {
+          const stored = localStorage.getItem(usageKey);
+          localCount = stored ? parseInt(stored, 10) : 0;
+        }
+        const finalCount = Math.max(localCount, backendCount);
+        setUsageCount(finalCount);
+        if (typeof window !== "undefined") {
+          localStorage.setItem(usageKey, finalCount.toString());
+        }
+        
+        // 2. Save resolved details to sessionStorage to bypass subsequent triggers
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem("portfolio-client-ip", resolvedIp);
+          sessionStorage.setItem("portfolio-client-geo", resolvedGeo);
+        }
+
+        addLog("SYSTEM", "info", `Authenticated secure node connection from IP ${resolvedIp}`);
       }
     } catch {
       // Secure Fallback (Rule 8)
       setClientIP("0.0.0.0");
       setIpLocation("Unknown Location");
-      const stored = localStorage.getItem("agents-usage-fallback");
-      if (stored) setUsageCount(parseInt(stored, 10));
+      
+      const usageKey = getDailyUsageKey();
+      let localCount = 0;
+      if (typeof window !== "undefined") {
+        const stored = localStorage.getItem(usageKey);
+        localCount = stored ? parseInt(stored, 10) : 0;
+      }
+      setUsageCount(localCount);
     }
   };
 
@@ -544,13 +624,14 @@ export default function AgentsPlayground() {
     setSimulationStepText("Multi-Agent Automation Workflow successfully completed.");
     addLog("SYSTEM", "success", `Pipeline execution finished. Process fully completed in ${(elapsedMs / 1000).toFixed(1)}s.`);
     
-    // Increment usage rate limits
-    const newCount = usageCount + 1;
-    setUsageCount(newCount);
-    if (typeof window !== "undefined") {
-      localStorage.setItem(`agents-usage-${clientIP}`, newCount.toString());
-      localStorage.setItem("agents-usage-fallback", newCount.toString());
-    }
+    // Increment usage rate limits (Rule 8)
+    setUsageCount((prev) => {
+      const newCount = prev + 1;
+      if (typeof window !== "undefined") {
+        localStorage.setItem(getDailyUsageKey(), newCount.toString());
+      }
+      return newCount;
+    });
 
     if (timerIntervalRef.current) {
       clearInterval(timerIntervalRef.current);
@@ -598,7 +679,8 @@ export default function AgentsPlayground() {
             </div>
           </Link>
           
-          <nav className="flex items-center gap-6 text-sm font-medium">
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
             {/* Elegant Minimalist Day/Night Icon Button */}
             <button 
               onClick={() => setIsDarkMode(!isDarkMode)}
@@ -611,9 +693,70 @@ export default function AgentsPlayground() {
             </button>
             <Link href="/vision" className="text-cyan-500 hover:text-cyan-400 font-semibold transition-colors mr-1">👁️ Vision Sandbox</Link>
             <Link href="/rag" className="text-purple-500 hover:text-purple-400 font-semibold transition-colors mr-1">🧠 RAG Sandbox</Link>
+            <Link href="/audio" className="text-amber-500 hover:text-amber-400 font-semibold transition-colors mr-1">🎙️ Audio Sandbox</Link>
             <Link href="/" className="text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-emerald-400 transition-colors">← Back to Portfolio</Link>
           </nav>
+
+          {/* Mobile Navigation Toggle Button */}
+          <div className="flex items-center gap-3 md:hidden">
+            <button 
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-white/[0.02] hover:bg-zinc-200 dark:hover:bg-white/[0.05] border border-zinc-200 dark:border-white/[0.05] flex items-center justify-center text-zinc-600 dark:text-yellow-400 cursor-pointer transition-all"
+              title={isDarkMode ? "Light Mode" : "Dark Mode"}
+            >
+              {isDarkMode ? "☀️" : "🌙"}
+            </button>
+
+            <button 
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)} 
+              className="p-2 rounded-lg bg-zinc-100 dark:bg-white/[0.02] hover:bg-zinc-200 dark:hover:bg-white/[0.05] text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-all"
+            >
+              {mobileMenuOpen ? (
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
+                </svg>
+              )}
+            </button>
+          </div>
         </div>
+
+        {/* Mobile Navigation Dropdown Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden px-4 pt-2 pb-6 border-t border-zinc-200 dark:border-white/[0.04] bg-[#ffffff] dark:bg-[#050507] flex flex-col gap-4 animate-fade-in z-50 relative">
+            <Link 
+              href="/vision" 
+              onClick={() => setMobileMenuOpen(false)} 
+              className="text-cyan-500 hover:text-cyan-400 font-mono text-xs font-bold transition-colors py-2.5 block uppercase tracking-wider border-b border-zinc-100 dark:border-white/[0.02]"
+            >
+              👁️ Vision Sandbox
+            </Link>
+            <Link 
+              href="/rag" 
+              onClick={() => setMobileMenuOpen(false)} 
+              className="text-purple-500 hover:text-purple-400 font-mono text-xs font-bold transition-colors py-2.5 block uppercase tracking-wider border-b border-zinc-100 dark:border-white/[0.02]"
+            >
+              🧠 RAG Sandbox
+            </Link>
+            <Link 
+              href="/audio" 
+              onClick={() => setMobileMenuOpen(false)} 
+              className="text-amber-500 hover:text-amber-400 font-mono text-xs font-bold transition-colors py-2.5 block uppercase tracking-wider border-b border-zinc-100 dark:border-white/[0.02]"
+            >
+              🎙️ Audio Sandbox
+            </Link>
+            <Link 
+              href="/" 
+              onClick={() => setMobileMenuOpen(false)} 
+              className="text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-white font-mono text-xs font-bold transition-colors py-2.5 block uppercase tracking-wider"
+            >
+              ← Back to Portfolio
+            </Link>
+          </div>
+        )}
       </header>
 
       {/* 🛠️ Dynamic Workspace Layout */}

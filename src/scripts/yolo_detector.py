@@ -11,6 +11,9 @@ except ImportError:
     print(json.dumps({"success": False, "error": "The 'ultralytics' library is not installed in Python environment."}))
     sys.exit(1)
 
+import torch
+torch.set_num_threads(1)
+
 def main():
     if len(sys.argv) < 2:
         print(json.dumps({"success": False, "error": "No image file path provided to python script."}))

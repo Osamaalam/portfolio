@@ -31,6 +31,7 @@ const POST_PROCESS_PRESETS = [
 
 export default function OcrSandbox() {
   const [isClient, setIsClient] = useState<boolean>(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
 
   // Theme state synced with local preference
   const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
@@ -64,6 +65,12 @@ export default function OcrSandbox() {
   const [ipLocation, setIpLocation] = useState<string>("Secure Workspace");
   const [usageCount, setUsageCount] = useState<number>(0);
   const maxUsage = 5;
+
+  // Helper to load/save daily usage count (Rule 8)
+  const getDailyUsageKey = () => {
+    const today = new Date().toISOString().split("T")[0];
+    return `portfolio-usage-vision-${today}`;
+  };
 
   // Pipeline configuration states
   const [engine, setEngine] = useState<"tesseract" | "gemini" | "yolo">("tesseract");
@@ -104,6 +111,25 @@ export default function OcrSandbox() {
 
   useEffect(() => {
     addLog("SYSTEM", "info", "Multi-Engine AI Vision & Segmenter initialized.");
+    
+    // Load daily usage from localStorage if present to prevent page refresh/dev restart reset
+    if (typeof window !== "undefined") {
+      const usageKey = getDailyUsageKey();
+      const stored = localStorage.getItem(usageKey);
+      if (stored) {
+        setUsageCount(parseInt(stored, 10));
+      } else {
+        setUsageCount(0);
+        // Prune older portfolio-usage-vision keys to avoid cluttering localStorage
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith("portfolio-usage-vision-") && key !== usageKey) {
+            localStorage.removeItem(key);
+          }
+        }
+      }
+    }
+
     fetchIPAddress();
 
     // Dynamically load Tesseract.js from CDN
@@ -125,9 +151,36 @@ export default function OcrSandbox() {
     }
   }, []);
 
-  // IP Geolocation via secure backend proxy to prevent CORS errors (Rule 8)
+  // IP Geolocation via secure backend proxy with high-performance Session Caching (Rule 8)
   const fetchIPAddress = async () => {
     try {
+      // 1. Check if IP is already cached in this tab session
+      if (typeof window !== "undefined") {
+        const cachedIp = sessionStorage.getItem("portfolio-client-ip");
+        const cachedGeo = sessionStorage.getItem("portfolio-client-geo");
+        
+        if (cachedIp && cachedGeo) {
+          setClientIP(cachedIp);
+          setIpLocation(cachedGeo);
+          
+          // Re-fetch the latest live server usage count to sync browsers (CORS-proof & instant)
+          const resCount = await fetch(`/api/vision/ip?ip=${cachedIp}`);
+          if (resCount.ok) {
+            const dataCount = await resCount.json();
+            const backendCount = dataCount.usageCount || 0;
+            const usageKey = getDailyUsageKey();
+            const stored = localStorage.getItem(usageKey);
+            const localCount = stored ? parseInt(stored, 10) : 0;
+            const finalCount = Math.max(localCount, backendCount);
+            setUsageCount(finalCount);
+            localStorage.setItem(usageKey, finalCount.toString());
+          }
+          
+          addLog("SYSTEM", "info", `Session Cache Hit: Loaded IP ${cachedIp} from memory.`);
+          return; // Zero API hits!
+        }
+      }
+
       let clientPublicIp = "";
       try {
         // Fast client-side fetch of public IP (always CORS-allowed by ipify)
@@ -144,17 +197,44 @@ export default function OcrSandbox() {
       const res = await fetch(backendUrl);
       if (res.ok) {
         const data = await res.json();
-        setClientIP(data.ip || "127.0.0.1");
-        setIpLocation(`${data.city || "Doha"}, ${data.country_name || "QA"}`);
-        const stored = localStorage.getItem(`ocr-usage-${data.ip}`);
-        if (stored) setUsageCount(parseInt(stored, 10));
-        addLog("SYSTEM", "info", `Gateway handshake complete. Client IP: ${data.ip}`);
+        const resolvedIp = data.ip || "127.0.0.1";
+        const resolvedGeo = `${data.city || "Doha"}, ${data.country_name || "QA"}`;
+
+        setClientIP(resolvedIp);
+        setIpLocation(resolvedGeo);
+        
+        const backendCount = data.usageCount || 0;
+        const usageKey = getDailyUsageKey();
+        let localCount = 0;
+        if (typeof window !== "undefined") {
+          const stored = localStorage.getItem(usageKey);
+          localCount = stored ? parseInt(stored, 10) : 0;
+        }
+        const finalCount = Math.max(localCount, backendCount);
+        setUsageCount(finalCount);
+        if (typeof window !== "undefined") {
+          localStorage.setItem(usageKey, finalCount.toString());
+        }
+
+        // 2. Save resolved details to sessionStorage to bypass subsequent triggers
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem("portfolio-client-ip", resolvedIp);
+          sessionStorage.setItem("portfolio-client-geo", resolvedGeo);
+        }
+
+        addLog("SYSTEM", "info", `Gateway handshake complete. Client IP: ${resolvedIp}`);
       }
     } catch {
       setClientIP("0.0.0.0");
       setIpLocation("Unknown Location");
-      const stored = localStorage.getItem("ocr-usage-fallback");
-      if (stored) setUsageCount(parseInt(stored, 10));
+      
+      const usageKey = getDailyUsageKey();
+      let localCount = 0;
+      if (typeof window !== "undefined") {
+        const stored = localStorage.getItem(usageKey);
+        localCount = stored ? parseInt(stored, 10) : 0;
+      }
+      setUsageCount(localCount);
     }
   };
 
@@ -482,13 +562,14 @@ export default function OcrSandbox() {
       }
     }
 
-    // Increment Usage Count safely
-    const newCount = usageCount + 1;
-    setUsageCount(newCount);
-    if (typeof window !== "undefined") {
-      localStorage.setItem(`ocr-usage-${clientIP}`, newCount.toString());
-      localStorage.setItem("ocr-usage-fallback", newCount.toString());
-    }
+    // Increment Usage Count safely (Rule 8)
+    setUsageCount((prev) => {
+      const newCount = prev + 1;
+      if (typeof window !== "undefined") {
+        localStorage.setItem(getDailyUsageKey(), newCount.toString());
+      }
+      return newCount;
+    });
   };
 
   const engineIsGemini = () => engine === "gemini";
@@ -547,7 +628,8 @@ export default function OcrSandbox() {
             </div>
           </Link>
           
-          <nav className="flex items-center gap-6 text-sm font-medium">
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
             {/* Elegant Minimalist Day/Night Icon Button */}
             <button 
               onClick={() => setIsDarkMode(!isDarkMode)}
@@ -560,9 +642,70 @@ export default function OcrSandbox() {
             </button>
             <Link href="/agents" className="text-emerald-500 hover:text-emerald-400 font-semibold transition-colors mr-1">⚡ Agent Sandbox</Link>
             <Link href="/rag" className="text-purple-500 hover:text-purple-400 font-semibold transition-colors mr-1">🧠 RAG Sandbox</Link>
+            <Link href="/audio" className="text-amber-500 hover:text-amber-400 font-semibold transition-colors mr-1">🎙️ Audio Sandbox</Link>
             <Link href="/" className="text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-emerald-400 transition-colors">← Back to Portfolio</Link>
           </nav>
+
+          {/* Mobile Navigation Toggle Button */}
+          <div className="flex items-center gap-3 md:hidden">
+            <button 
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-white/[0.02] hover:bg-zinc-200 dark:hover:bg-white/[0.05] border border-zinc-200 dark:border-white/[0.05] flex items-center justify-center text-zinc-600 dark:text-yellow-400 cursor-pointer transition-all"
+              title={isDarkMode ? "Light Mode" : "Dark Mode"}
+            >
+              {isDarkMode ? "☀️" : "🌙"}
+            </button>
+
+            <button 
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)} 
+              className="p-2 rounded-lg bg-zinc-100 dark:bg-white/[0.02] hover:bg-zinc-200 dark:hover:bg-white/[0.05] text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-all"
+            >
+              {mobileMenuOpen ? (
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
+                </svg>
+              )}
+            </button>
+          </div>
         </div>
+
+        {/* Mobile Navigation Dropdown Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden px-4 pt-2 pb-6 border-t border-zinc-200 dark:border-white/[0.04] bg-[#ffffff] dark:bg-[#050507] flex flex-col gap-4 animate-fade-in z-50 relative">
+            <Link 
+              href="/agents" 
+              onClick={() => setMobileMenuOpen(false)} 
+              className="text-emerald-500 hover:text-emerald-400 font-mono text-xs font-bold transition-colors py-2.5 block uppercase tracking-wider border-b border-zinc-100 dark:border-white/[0.02]"
+            >
+              ⚡ Agent Sandbox
+            </Link>
+            <Link 
+              href="/rag" 
+              onClick={() => setMobileMenuOpen(false)} 
+              className="text-purple-500 hover:text-purple-400 font-mono text-xs font-bold transition-colors py-2.5 block uppercase tracking-wider border-b border-zinc-100 dark:border-white/[0.02]"
+            >
+              🧠 RAG Sandbox
+            </Link>
+            <Link 
+              href="/audio" 
+              onClick={() => setMobileMenuOpen(false)} 
+              className="text-amber-500 hover:text-amber-400 font-mono text-xs font-bold transition-colors py-2.5 block uppercase tracking-wider border-b border-zinc-100 dark:border-white/[0.02]"
+            >
+              🎙️ Audio Sandbox
+            </Link>
+            <Link 
+              href="/" 
+              onClick={() => setMobileMenuOpen(false)} 
+              className="text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-white font-mono text-xs font-bold transition-colors py-2.5 block uppercase tracking-wider"
+            >
+              ← Back to Portfolio
+            </Link>
+          </div>
+        )}
       </header>
 
       {/* 🛠️ Dynamic Workspace Layout */}
@@ -578,7 +721,7 @@ export default function OcrSandbox() {
               Synapse Multi-Engine Vision Sandbox
             </h1>
             <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed font-sans mt-1 font-medium">
-              Experience dynamic computer vision and document intelligence pipelines. Upload an image, choose between client-side Tesseract.js, Gemini Vision, or server-side YOLOe Instance Segmentations to map exact shapes, and write custom prompts to restructure the results.
+              Experience dynamic computer vision and document intelligence pipelines. Upload an image, choose between client-side Tesseract.js, Vision LLM (Multimodal Q&A), or server-side YOLOe Instance Segmentations to map exact shapes, and write custom prompts to restructure the results.
             </p>
           </div>
 
@@ -676,7 +819,7 @@ export default function OcrSandbox() {
                       {key === "tesseract" ? "🌐" : key === "gemini" ? "🧠" : "🚀"}
                     </span>
                     <span className="text-[8px] font-mono leading-tight uppercase font-bold tracking-wider">
-                      {key === "tesseract" ? "Local" : key === "gemini" ? "Gemini" : "YOLOe"}
+                      {key === "tesseract" ? "Local" : key === "gemini" ? "Vision LLM" : "YOLOe"}
                     </span>
                   </button>
                 );
@@ -688,11 +831,11 @@ export default function OcrSandbox() {
           <div className="p-3.5 rounded-xl bg-zinc-50/50 dark:bg-white/[0.02] border border-zinc-100 dark:border-white/[0.04] text-[10px] leading-relaxed">
             <div className="flex items-center gap-1.5 font-bold text-black dark:text-white font-mono uppercase tracking-wider mb-1">
               <span>{engine === "tesseract" ? "🌐" : engine === "gemini" ? "🧠" : "🚀"}</span>
-              <span>{engine === "tesseract" ? "Tesseract.js (Local Client-Bound)" : engine === "gemini" ? "Gemini 2.5 Flash Vision" : "YOLOe Segmentation (Server)"}</span>
+              <span>{engine === "tesseract" ? "Tesseract.js (Local Client-Bound)" : engine === "gemini" ? "Vision LLM (Paid Multimodal Q&A)" : "YOLOe Segmentation (Server)"}</span>
             </div>
             <p className="text-black dark:text-zinc-400 font-sans font-semibold">
               {engine === "tesseract" && "Parses layout text entirely locally in the browser's thread. No data leaves your machine, ensuring complete privacy compliance."}
-              {engine === "gemini" && "Answers custom questions about images or provides detailed descriptions using Gemini's paid multimodal vision system."}
+              {engine === "gemini" && "Answers custom questions about images or provides detailed descriptions using a paid, multimodal Vision LLM (Gemini)."}
               {engine === "yolo" && "Spawns a Python Ultralytics instance on the server to run YOLOe Segmentations, isolating and highlighting your named target object. Note: Server-side CPU inference may take 3-5 seconds, so please be patient during execution."}
             </p>
           </div>
@@ -734,7 +877,7 @@ export default function OcrSandbox() {
                 placeholder="Ask anything about the image (e.g. 'Describe this image' or 'List any text present')..."
               />
               <span className="text-[8px] text-zinc-500 dark:text-zinc-400 leading-none">
-                Type your custom question or processing instructions for Gemini Vision
+                Type your custom question or processing instructions for the Multimodal Vision LLM
               </span>
             </div>
           )}
@@ -894,7 +1037,7 @@ export default function OcrSandbox() {
                   {engine === "tesseract" ? "🌐" : engine === "gemini" ? "🧠" : "🚀"}
                 </div>
                 <span className="text-[10px] mt-2 font-bold text-muted-foreground uppercase font-mono text-[9px]">
-                  {engine === "tesseract" ? "Tesseract Local" : engine === "gemini" ? "Gemini Vision" : "YOLOe Core"}
+                  {engine === "tesseract" ? "Tesseract Local" : engine === "gemini" ? "Vision LLM" : "YOLOe Core"}
                 </span>
               </div>
 
@@ -1199,7 +1342,7 @@ export default function OcrSandbox() {
           <span className="text-2xl">🧠</span>
           <h4 className="font-mono text-sm uppercase tracking-wider font-bold text-white">Paid Vision-LLM APIs</h4>
           <p className="text-xs text-zinc-400 leading-relaxed font-sans">
-            Multimodal analysis utilizing standard paid tier Gemini Vision engines, parsing tables and complex hand-written layouts effortlessly.
+            Multimodal analysis utilizing standard paid tier Vision LLM (Gemini) engines, parsing tables and complex hand-written layouts effortlessly.
           </p>
         </div>
         <div className="flex flex-col gap-2.5">
