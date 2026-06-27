@@ -1,14 +1,42 @@
 import { NextResponse } from "next/server";
+import { incrementAndCheckGlobalLimit } from "@/lib/globalLimiter";
 
 export async function POST(request: Request) {
   try {
+    const forwardHeader = request.headers.get("x-forwarded-for");
+    const ip = forwardHeader ? forwardHeader.split(",")[0].trim() : "127.0.0.1";
+
+    // 1. Enforce IP and Global Daily Rate-Limiting (Rule 8)
+    const { allowed, error } = incrementAndCheckGlobalLimit(ip);
+    if (!allowed) {
+      return NextResponse.json(
+        { success: false, error: error || "Rate limit exceeded. Please try again tomorrow." },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
-    const { name, email, service, message } = body;
+    let { name, email, service, message } = body;
 
     // Validate inputs
     if (!name || !email || !message) {
       return NextResponse.json(
         { success: false, error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
+    // 2. Strict Input Length Caps (Rule 8)
+    name = String(name).trim().slice(0, 100);
+    email = String(email).trim().slice(0, 100);
+    service = String(service || "general").trim().slice(0, 50);
+    message = String(message).trim().slice(0, 3000);
+
+    // 3. Email Format Security Regex (Rule 8)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return NextResponse.json(
+        { success: false, error: "Security Exception: Invalid email format" },
         { status: 400 }
       );
     }

@@ -220,6 +220,12 @@ export default function AgentsPlayground() {
     const savedTheme = localStorage.getItem("portfolio-theme");
     if (savedTheme === "light") {
       setIsDarkMode(false);
+    } else if (savedTheme === "dark") {
+      setIsDarkMode(true);
+    } else {
+      // Respect browser/system preferred color scheme on first visit
+      const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      setIsDarkMode(systemPrefersDark);
     }
   }, []);
 
@@ -294,9 +300,22 @@ export default function AgentsPlayground() {
     fetchIPAddress();
   }, []);
 
+  // Fetch Public IP securely via CORS-free backend proxy (Rule 8)
   const fetchIPAddress = async () => {
     try {
-      const res = await fetch("https://ipapi.co/json/");
+      let clientPublicIp = "";
+      try {
+        const ipifyRes = await fetch("https://api.ipify.org?format=json");
+        if (ipifyRes.ok) {
+          const ipifyData = await ipifyRes.json();
+          clientPublicIp = ipifyData.ip || "";
+        }
+      } catch (e) {
+        console.warn("ipify lookup failed, falling back to backend IP detection", e);
+      }
+
+      const backendUrl = clientPublicIp ? `/api/vision/ip?ip=${clientPublicIp}` : "/api/vision/ip";
+      const res = await fetch(backendUrl);
       if (res.ok) {
         const data = await res.json();
         setClientIP(data.ip || "127.0.0.1");
@@ -306,8 +325,9 @@ export default function AgentsPlayground() {
         addLog("SYSTEM", "info", `Authenticated secure node connection from IP ${data.ip}`);
       }
     } catch {
-      setClientIP("104.28.14.92");
-      setIpLocation("Active Proxy Gateway");
+      // Secure Fallback (Rule 8)
+      setClientIP("0.0.0.0");
+      setIpLocation("Unknown Location");
       const stored = localStorage.getItem("agents-usage-fallback");
       if (stored) setUsageCount(parseInt(stored, 10));
     }
@@ -368,7 +388,7 @@ export default function AgentsPlayground() {
 
   // Primary Agent Execution Loop Coordinator
   const runAgentPipeline = async (startFromIndex = 0, isLoopingRevision = false) => {
-    const isWhitelisted = clientIP === "34.132.233.106" || clientIP === "104.28.14.92";
+    const isWhitelisted = clientIP === "34.132.233.106";
     if (usageCount >= maxUsage && !isWhitelisted) {
       alert("Demo workspace query limit reached (5/5). Please contact Osama Alam for an unlimited VIP trial key!");
       addLog("GATEWAY", "error", "Rate limit exceeded. Query blocked.");
@@ -573,7 +593,7 @@ export default function AgentsPlayground() {
               <img src="/icon.png" alt="Osama Alam Logo" className="w-10 h-10 object-contain rounded-full" />
             </div>
             <div className="flex flex-col">
-              <span className="font-bold tracking-tight text-zinc-900 dark:text-white group-hover:text-emerald-500 dark:group-hover:text-emerald-400 transition-colors">Osama Alam</span>
+              <span className="font-bold tracking-tight text-emerald-500 group-hover:text-emerald-500 dark:group-hover:text-emerald-400 transition-colors">Osama Alam</span>
               <span className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase">AI Architect & Founder</span>
             </div>
           </Link>
@@ -589,8 +609,9 @@ export default function AgentsPlayground() {
                 {isDarkMode ? "🌙" : "☀️"}
               </span>
             </button>
+            <Link href="/vision" className="text-cyan-500 hover:text-cyan-400 font-semibold transition-colors mr-1">👁️ Vision Sandbox</Link>
             <Link href="/rag" className="text-purple-500 hover:text-purple-400 font-semibold transition-colors mr-1">🧠 RAG Sandbox</Link>
-            <Link href="/" className="text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors">← Back to Portfolio</Link>
+            <Link href="/" className="text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-emerald-400 transition-colors">← Back to Portfolio</Link>
           </nav>
         </div>
       </header>
@@ -620,16 +641,16 @@ export default function AgentsPlayground() {
             </div>
             <div className="flex justify-between">
               <span>Client IP:</span>
-              <span className="text-zinc-300 font-bold">{clientIP}</span>
+              <span className="text-muted-foreground font-bold">{clientIP}</span>
             </div>
             <div className="flex justify-between">
               <span>Secure Node:</span>
-              <span className="text-zinc-300 font-bold line-clamp-1">{ipLocation}</span>
+              <span className="text-muted-foreground font-bold line-clamp-1">{ipLocation}</span>
             </div>
             <div className="flex justify-between border-t border-white/[0.05] pt-1.5 mt-1 text-[11px] font-bold">
               <span>Daily Rate Limit:</span>
               <span className="text-emerald-400">
-                {clientIP === "34.132.233.106" || clientIP === "104.28.14.92" ? "UNLIMITED (VIP)" : `${usageCount} / ${maxUsage} Used`}
+                {clientIP === "34.132.233.106" ? "UNLIMITED (VIP)" : `${usageCount} / ${maxUsage} Used`}
               </span>
             </div>
           </div>
@@ -686,7 +707,7 @@ export default function AgentsPlayground() {
               <span>{scenario === "engineering" ? "💻" : scenario === "marketing" ? "📈" : "🗄️"}</span>
               <span>{scenario === "engineering" ? "Software Engineering Pipeline" : scenario === "marketing" ? "Competitor Intelligence Loop" : "Incident Operations Escalator"}</span>
             </div>
-            <p className="text-black dark:text-zinc-300 font-sans font-semibold">
+            <p className="text-black dark:text-muted-foreground font-sans font-semibold">
               {scenario === "engineering" && "An automated loop where a System Architect specifies schemas, an Engineer implements TypeScript backend routes with typical bug patterns, and a QA Auditor compiles unit tests to trigger self-reflection correction loops."}
               {scenario === "marketing" && "A digital intelligence sequence where a Web Crawler indexes competitor models, a SWOT Specialist computes target demographics, and a Copywriter generates creative legal-compliance audited campaigns."}
               {scenario === "operations" && "An operational customer-support triage funnel analyzing ticket sentiments, executing SQL audits on duplicate transaction replicas, and computing security fraud index scores."}
@@ -783,7 +804,7 @@ export default function AgentsPlayground() {
                     className={`p-2 rounded-lg border text-left flex items-center gap-2 cursor-pointer transition-all ${
                       active 
                         ? "bg-emerald-500/5 border-emerald-500/30 text-emerald-600 dark:text-emerald-300 font-bold" 
-                        : "bg-zinc-50 dark:bg-white/[0.01] border-zinc-200 dark:border-white/[0.03] text-black dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300 font-semibold"
+                        : "bg-zinc-50 dark:bg-white/[0.01] border-zinc-200 dark:border-white/[0.03] text-black dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-muted-foreground font-semibold"
                     }`}
                   >
                     <div className={`w-3 h-3 rounded flex items-center justify-center border text-[8px] ${
@@ -837,7 +858,7 @@ export default function AgentsPlayground() {
                 <span className="text-[9px] uppercase font-mono tracking-widest text-emerald-400 font-semibold">
                   Network Graph Topology
                 </span>
-                <span className="text-[11px] text-zinc-300 font-bold mt-0.5">
+                <span className="text-[11px] text-muted-foreground font-bold mt-0.5">
                   {SCENARIO_PRESETS[scenario].title}
                 </span>
               </div>
@@ -979,7 +1000,7 @@ export default function AgentsPlayground() {
               {/* IDE Editor Output screen */}
               <div ref={editorRef} className="flex-1 p-4 overflow-y-auto no-scrollbar bg-black/60 font-mono text-xs leading-relaxed">
                 {typingBuffer ? (
-                  <pre className="whitespace-pre-wrap text-zinc-300">
+                  <pre className="whitespace-pre-wrap text-muted-foreground">
                     <code>{typingBuffer}</code>
                   </pre>
                 ) : (
@@ -1002,7 +1023,7 @@ export default function AgentsPlayground() {
                   <button
                     onClick={() => setActiveConsoleTab("terminal")}
                     className={`px-3 py-1.5 rounded-lg text-[10px] font-mono transition-all cursor-pointer ${
-                      activeConsoleTab === "terminal" ? "bg-white/[0.05] text-white" : "text-zinc-500 hover:text-zinc-300"
+                      activeConsoleTab === "terminal" ? "bg-white/[0.05] text-white" : "text-zinc-500 hover:text-muted-foreground"
                     }`}
                   >
                     Console Out
@@ -1011,7 +1032,7 @@ export default function AgentsPlayground() {
                     onClick={() => setActiveConsoleTab("tools")}
                     disabled={!activeToolName}
                     className={`px-3 py-1.5 rounded-lg text-[10px] font-mono transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${
-                      activeConsoleTab === "tools" ? "bg-white/[0.05] text-white" : "text-zinc-500 hover:text-zinc-300"
+                      activeConsoleTab === "tools" ? "bg-white/[0.05] text-white" : "text-zinc-500 hover:text-muted-foreground"
                     }`}
                   >
                     Active Tool {activeToolName && `(${activeToolName})`}
@@ -1046,7 +1067,7 @@ export default function AgentsPlayground() {
                       );
                     })}
                     {logs.length === 0 && (
-                      <span className="text-zinc-700">Awaiting automation trace streams...</span>
+                      <span className="text-zinc-500">Awaiting automation trace streams...</span>
                     )}
                   </div>
                 ) : (
@@ -1140,7 +1161,7 @@ export default function AgentsPlayground() {
             {/* Modal Body */}
             <div className="p-6 flex flex-col gap-4">
               
-              <p className="text-xs text-zinc-800 dark:text-zinc-300 leading-relaxed font-semibold">
+              <p className="text-xs text-zinc-800 dark:text-muted-foreground leading-relaxed font-semibold">
                 {scenario === "engineering" ? (
                   <>
                     The <span className="font-extrabold text-zinc-950 dark:text-white">QA Auditor Agent</span> successfully ran automated Unit tests against the current TypeScript draft, and found an intentional <span className="text-orange-600 dark:text-orange-400 font-extrabold">JWT Signature Parse Bug</span>.
@@ -1166,7 +1187,7 @@ export default function AgentsPlayground() {
                     </button>
                     <button
                       onClick={() => handleHumanProceed(true)}
-                      className="py-3 px-4 rounded-xl bg-zinc-100 hover:bg-zinc-200 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] border border-zinc-200 dark:border-white/[0.06] text-zinc-800 dark:text-zinc-300 hover:text-black dark:hover:text-white font-bold text-xs transition-all cursor-pointer"
+                      className="py-3 px-4 rounded-xl bg-zinc-100 hover:bg-zinc-200 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] border border-zinc-200 dark:border-white/[0.06] text-zinc-800 dark:text-muted-foreground hover:text-black dark:hover:text-white font-bold text-xs transition-all cursor-pointer"
                     >
                       ⚠️ Bypass (Force Deploy)
                     </button>

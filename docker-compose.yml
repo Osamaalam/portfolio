@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  portfolio:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: portfolio-app
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_CHAT_MODEL=gemini-3.1-flash-lite
+      - PORT=3000
+    volumes:
+      # Optional: Persists any log files generated
+      - ./server.log:/app/server.log

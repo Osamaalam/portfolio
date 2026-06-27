@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-cyber-teal: #10b981;
   --color-cyber-blue: #06b6d4;
@@ -9,6 +11,7 @@
   --color-cyber-card: var(--card);
   --color-cyber-text-title: var(--text-title);
   --color-cyber-text-muted: var(--text-muted);
+  --color-muted-foreground: var(--text-muted);
   --font-sans: var(--font-geist-sans), sans-serif;
   --font-mono: var(--font-geist-mono), monospace;
 }
@@ -231,18 +234,16 @@ body {
 :root:not(.dark) h4:not(.sh-terminal h4):not(.sh-terminal *):not(.sh-dark-card h4):not(.sh-dark-card *),
 :root:not(.dark) h5,
 :root:not(.dark) .font-extrabold:not(.sh-terminal *):not(.sh-dark-card *):not([class*="hover:text-"]:hover),
-:root:not(.dark) .font-bold:not(.sh-terminal *):not(.sh-dark-card *):not([class*="hover:text-"]:hover),
-:root:not(.dark) .text-white:not(.sh-terminal *):not(.sh-dark-card *):not([class*="hover:text-"]:hover) {
-  color: #0f172a !important; /* Rich deep navy slate instead of white */
+/* :root:not(.dark) .font-bold:not(.sh-terminal *):not(.sh-dark-card *):not([class*="hover:text-"]:hover), */
+:root:not(.dark) .font-semibold:not(.sh-terminal *):not(.sh-dark-card *):not([class*="hover:text-"]:hover) {
+  color: #09090b !important; /* Rich deep black for titles */
 }
 
 /* Paragraphs, descriptions, secondary items */
 :root:not(.dark) p:not(.sh-terminal *):not(.sh-dark-card *):not([class*="hover:text-"]:hover),
 :root:not(.dark) li:not(.sh-terminal *):not(.sh-dark-card *):not([class*="hover:text-"]:hover),
 :root:not(.dark) ul:not(.sh-terminal *):not(.sh-dark-card *):not([class*="hover:text-"]:hover),
-:root:not(.dark) span:not(.font-mono):not(.sh-terminal *):not(.sh-dark-card *):not(.text-emerald-400):not(.text-cyan-400):not(.text-purple-400):not(.text-yellow-500):not(.text-emerald-500):not(.text-cyan-500):not(.text-purple-500):not([class*="hover:text-"]:hover) {
-  color: #374151 !important; /* High contrast charcoal dark gray */
-}
+
 
 /* Muted secondary descriptions */
 :root:not(.dark) .text-zinc-400:not(.sh-terminal *):not(.sh-dark-card *):not([class*="hover:text-"]:hover),
@@ -251,7 +252,7 @@ body {
 }
 
 /* Ensure timeline item titles are visible */
-:root:not(.dark) .text-zinc-300:not(.sh-terminal *):not(.sh-dark-card *):not([class*="hover:text-"]:hover) {
+:root:not(.dark) .text-muted-foreground:not(.sh-terminal *):not(.sh-dark-card *):not([class*="hover:text-"]:hover) {
   color: #1f2937 !important;
 }
 
@@ -370,7 +371,7 @@ body {
   color: #d4d4d8 !important; /* Zinc-300 */
 }
 
-:root .sh-terminal .text-zinc-300 {
+:root .sh-terminal .text-muted-foreground {
   color: #d4d4d8 !important;
 }
 
@@ -413,6 +414,13 @@ body {
 }
 
 /* Specific inner background overrides to keep dark card nodes dark */
+:root .sh-dark-card.glass-panel,
+:root .sh-dark-card .glass-panel {
+  background-color: #07070a !important;
+  background: #07070a !important;
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
 .sh-dark-card .bg-black {
   background-color: #000000 !important;
 }
@@ -435,7 +443,7 @@ body {
   color: #d4d4d8 !important; /* Zinc-300 */
 }
 
-:root .sh-dark-card .text-zinc-300 {
+:root .sh-dark-card .text-muted-foreground {
   color: #d4d4d8 !important;
 }
 

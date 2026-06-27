@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     }
 
     params = await request.json();
-    const { scenario, agentRole, userPrompt, temperature, allowedTools, isRevision, workspaceFiles } = params;
+    let { scenario, agentRole, userPrompt, temperature, allowedTools, isRevision, workspaceFiles } = params;
 
     if (!scenario || !agentRole || !userPrompt) {
       return NextResponse.json(
@@ -26,6 +26,25 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+
+    // 1. Strict Parameter Whitelists (Rule 8)
+    const allowedScenarios = ["engineering", "marketing", "operations"];
+    const allowedRoles: Record<string, string[]> = {
+      engineering: ["architect", "engineer", "qa", "secops"],
+      marketing: ["scraper", "swot", "copywriter", "compliance"],
+      operations: ["triage", "sql", "fraud", "resolution"]
+    };
+
+    if (!allowedScenarios.includes(scenario)) {
+      return NextResponse.json({ success: false, error: "Security Exception: Unsupported scenario type." }, { status: 400 });
+    }
+
+    if (!allowedRoles[scenario] || !allowedRoles[scenario].includes(agentRole)) {
+      return NextResponse.json({ success: false, error: "Security Exception: Unsupported agent role for selected scenario." }, { status: 400 });
+    }
+
+    // 2. Strict Input Length Caps (Rule 8)
+    userPrompt = String(userPrompt).trim().slice(0, 1000);
 
     const apiKey = process.env.GEMINI_API_KEY;
     const model = process.env.GEMINI_CHAT_MODEL || "gemini-2.5-flash";

@@ -83,28 +83,28 @@ export default function RAGSimulator() {
           <button 
             type="button"
             onClick={() => { setRagQuery("Summarize company logistics metrics for Q1"); setRagChunks([]); setRagResponse(""); setRagStatus("idle"); }}
-            className="px-2 py-0.5 rounded bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.08] hover:border-purple-500/40 text-[9px] text-zinc-300 font-mono transition-all cursor-pointer"
+            className="px-2 py-0.5 rounded bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.08] hover:border-purple-500/40 text-[9px] text-muted-foreground font-mono transition-all cursor-pointer"
           >
             🚚 Logistics
           </button>
           <button 
             type="button"
             onClick={() => { setRagQuery("What was the SaaS sales revenue and profit growth?"); setRagChunks([]); setRagResponse(""); setRagStatus("idle"); }}
-            className="px-2 py-0.5 rounded bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.08] hover:border-purple-500/40 text-[9px] text-zinc-300 font-mono transition-all cursor-pointer"
+            className="px-2 py-0.5 rounded bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.08] hover:border-purple-500/40 text-[9px] text-muted-foreground font-mono transition-all cursor-pointer"
           >
             💰 SaaS Sales
           </button>
           <button 
             type="button"
             onClick={() => { setRagQuery("Analyze wait-times and imaging diagnosis sensitivity"); setRagChunks([]); setRagResponse(""); setRagStatus("idle"); }}
-            className="px-2 py-0.5 rounded bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.08] hover:border-purple-500/40 text-[9px] text-zinc-300 font-mono transition-all cursor-pointer"
+            className="px-2 py-0.5 rounded bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.08] hover:border-purple-500/40 text-[9px] text-muted-foreground font-mono transition-all cursor-pointer"
           >
             🩺 Healthcare AI
           </button>
           <button 
             type="button"
             onClick={() => { setRagQuery("Check smart contract Solidity security audits"); setRagChunks([]); setRagResponse(""); setRagStatus("idle"); }}
-            className="px-2 py-0.5 rounded bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.08] hover:border-purple-500/40 text-[9px] text-zinc-300 font-mono transition-all cursor-pointer"
+            className="px-2 py-0.5 rounded bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.08] hover:border-purple-500/40 text-[9px] text-muted-foreground font-mono transition-all cursor-pointer"
           >
             ⛓️ Web3 Solidity
           </button>

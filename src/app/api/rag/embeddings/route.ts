@@ -16,7 +16,8 @@ export async function POST(request: Request) {
       );
     }
 
-    const { texts } = await request.json();
+    const body = await request.json();
+    let { texts } = body;
 
     if (!texts || !Array.isArray(texts) || texts.length === 0) {
       return NextResponse.json(
@@ -24,6 +25,17 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+
+    // 1. Array Size Security Cap (Rule 8)
+    if (texts.length > 60) {
+      return NextResponse.json(
+        { success: false, error: "Security Exception: Batch size exceeds the 60 text limit." },
+        { status: 400 }
+      );
+    }
+
+    // 2. Element Validation & Individual Length Cap (Rule 8)
+    texts = texts.map((t: any) => String(t || "").trim().slice(0, 1000));
 
     const apiKey = process.env.GEMINI_API_KEY;
     const model = process.env.GEMINI_EMBEDDING_MODEL || "gemini-embedding-2";

@@ -28,9 +28,11 @@ Welcome to the official repository of my personal engineering portfolio. This is
 
 ## ✨ Features & Architecture
 
-### 1. 🤖 Interactive Multi-Agent Workflow Simulator
-* Simulates real-time, layperson-friendly cooperative cycles between three specialized autonomous agents: **Data Researcher**, **Analyst**, and **Report Writer**.
-* Features self-correcting prompt loops and dynamic logging showing how complex document data is extracted and formatted automatically.
+### 1. 🤖 Synapse Multi-Agent & Process Automation Sandbox
+* Orchestrates real-time, context-aware cooperative loops between specialized autonomous agents (`System Architect`, `Software Engineer`, `QA Test Auditor`, `SecOps Guardian`).
+* Supports fully custom prompt objectives, model temperature sliders, and authorized tool checkbox suites.
+* **Human-in-the-Loop (HITL) manual correction**: Pauses and allows supervisor intervention during test failures to loop back, request engineer self-reflection, and auto-correct bugs.
+* **0ms Intelligent Preset Caching**: Instantly delivers pre-verified pipelines with zero upstream network dependencies or cost overheads.
 
 ### 2. 🧠 Medical Pathological Scan Segmentation (Computer Vision)
 * Mock computer vision classifier using a 3D slice-depth control dashboard (calibrated around ResNet-50 structures).
@@ -48,6 +50,11 @@ Welcome to the official repository of my personal engineering portfolio. This is
 ### 5. 📬 Secure Portable Lead Capture (n8n Integration)
 * Next.js API endpoint (`/api/contact`) that securely packages customer contact information.
 * Replaced native process calls with modern, highly portable Node.js `fetch` APIs using secure Base64 Basic Authentication to forward inquiries asynchronously to my **n8n orchestration workflow**.
+
+### 6. 👁️ Multi-Engine AI Vision & YOLOv11 Segmentation Sandbox
+* **Client-Bound Tesseract.js**: Client-bound, fully local, private browser-side text extraction executing natively in browser memory.
+* **Gemini 3.1 Flash-Lite Vision**: Multimodal visual analysis allowing users to upload documents and type custom questions to get structured markdown reports or summaries.
+* **Real YOLOv11 Instance Segmentation**: Spawns a Python `ultralytics` model instance on the server to execute `yoloe-11s-seg.pt` on your uploaded image, dynamically isolating and painting glowing translucent masks matching your specific named target object (e.g. `laptop`, `cup`).
 
 ---
 
@@ -89,7 +96,11 @@ docker build -t osama-portfolio:latest .
 Follow these steps to run and develop the portfolio locally:
 
 ### 1. Prerequisites
-Ensure you have **Node.js (>= 20.9)** and **npm** installed on your machine.
+* **Node.js (>= 20.9)** and **npm** package manager.
+* **Python (>= 3.8)** and **pip** (required if you wish to run local YOLOv11 segmentations):
+  ```bash
+  pip install ultralytics
+  ```
 
 ### 2. Installation
 Clone the repository and install the dependencies:

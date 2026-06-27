@@ -16,7 +16,32 @@ export async function POST(request: Request) {
       );
     }
 
-    const { query, contexts, history, isFirstQuery, clientIP } = await request.json();
+    const body = await request.json();
+    let { query, contexts, history, isFirstQuery, clientIP } = body;
+
+    // 1. Sanitize and restrict the query string (Rule 8)
+    query = String(query || "").trim().slice(0, 1000);
+
+    if (!query) {
+      return NextResponse.json(
+        { success: false, error: "Missing query" },
+        { status: 400 }
+      );
+    }
+
+    // 2. Sanitize and cap context documents to top 5 blocks max (Rule 8)
+    if (contexts && Array.isArray(contexts)) {
+      contexts = contexts.slice(0, 5).map((ctx: any) => String(ctx || "").trim().slice(0, 1000));
+    } else {
+      contexts = [];
+    }
+
+    // 3. Sanitize and cap conversational history to last 15 turns max (Rule 8)
+    if (history && Array.isArray(history)) {
+      history = history.slice(-15);
+    } else {
+      history = [];
+    }
 
     if (isFirstQuery) {
       const webhookUser = process.env.N8N_WEBHOOK_USER || "osamaresponse";
@@ -42,13 +67,6 @@ export async function POST(request: Request) {
       } catch (webhookErr) {
         console.error("Failed to forward RAG telemetry:", webhookErr);
       }
-    }
-
-    if (!query) {
-      return NextResponse.json(
-        { success: false, error: "Missing query" },
-        { status: 400 }
-      );
     }
 
     const apiKey = process.env.GEMINI_API_KEY;

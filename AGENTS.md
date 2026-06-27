@@ -130,3 +130,24 @@ Stop-Process -Id (Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyCont
   ```bash
   docker push ghcr.io/osamaalam/portfolio:latest
   ```
+
+---
+
+## 👁️ 7. Multi-Engine AI Vision & YOLOE Open-Vocabulary Segmentation Sandbox
+
+The `/vision` page integrates a highly sophisticated computer vision and multimodal pipeline:
+
+### Multi-Engine Architectural Strategy:
+* **Local Browser OCR (Tesseract.js):** Pulls raw text characters entirely locally in the browser's V8 thread. No server overheads.
+* **Multimodal Vision Q&A (Gemini 3.1):** Leverages `gemini-3.1-flash-lite` to allow users to ask any custom question about the uploaded document (e.g. summarizing charts, describing photos).
+* **Real-Time Open-Vocabulary Segmentation (YOLOE):** Spawns a Python `ultralytics` child process on the server to execute the `yoloe-11s-seg.pt` weights. Users type any target object class, and the backend dynamically filters coordinates, returning precise polygon coordinate masks that paint glowing overlays directly on the WebUI.
+
+### Stable Canvas Overlay Mathematics:
+To prevent browser layout collapse, the image and canvas overlay use a pure CSS flexbox and relative wrapper:
+```typescript
+<div className="relative max-h-[340px] max-w-full flex items-center justify-center">
+  <img ref={imageRef} src={imageUrl} className="max-h-[340px] max-w-full object-contain block" />
+  <canvas ref={canvasRef} className="absolute pointer-events-auto cursor-crosshair" />
+</div>
+```
+When `drawYoloDetections()` executes, it reads `img.clientWidth` and `img.clientHeight` and styles the canvas's properties (`width`, `height`, `top`, `left`) directly in the DOM. This aligns the masks with pixel-perfect accuracy on all browsers.

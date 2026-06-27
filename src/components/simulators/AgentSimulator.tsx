@@ -79,7 +79,7 @@ export default function AgentSimulator() {
 
         {/* Status Box */}
         <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.05] min-h-[50px] flex items-center justify-center">
-          <p className="text-xs text-zinc-300 text-center leading-relaxed font-sans">
+          <p className="text-xs text-muted-foreground text-center leading-relaxed font-sans">
             {agentStep > 0 && agentStep < 4 && (
               <span className="inline-block animate-bounce mr-1.5">⚡</span>
             )}

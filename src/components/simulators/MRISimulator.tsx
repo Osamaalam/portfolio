@@ -82,7 +82,7 @@ export default function MRISimulator() {
         {/* Analysis Output log */}
         <div className="p-3 rounded-lg bg-black border border-white/[0.04] text-[11px] leading-relaxed font-sans">
           <span className="text-zinc-500 font-mono">Model Output: </span>
-          <span className={mriResult.includes("⚠️") ? "text-red-400 font-bold" : mriResult.includes("✓") ? "text-emerald-400 font-medium" : "text-zinc-300"}>
+          <span className={mriResult.includes("⚠️") ? "text-red-400 font-bold" : mriResult.includes("✓") ? "text-emerald-400 font-medium" : "text-muted-foreground"}>
             {mriResult || "Ready to evaluate. Drag slider and click start below."}
           </span>
         </div>

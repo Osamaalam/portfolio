@@ -298,14 +298,16 @@ const TESTIMONIALS_DATA: Testimonial[] = [
 // ==========================================
 
 export default function Home() {
-  // Theme state (dark-first by default)
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
-    if (typeof window !== "undefined") {
-      const savedTheme = localStorage.getItem("portfolio-theme");
-      return savedTheme !== "light";
+  // Theme state initialized to a static default (dark-first) to prevent SSR hydration mismatches
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
+
+  // Load local storage theme safely after mounting has successfully completed on client
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("portfolio-theme");
+    if (savedTheme === "light") {
+      setIsDarkMode(false);
     }
-    return true;
-  });
+  }, []);
 
   // Navigation & Interactive States
   const [activeTab, setActiveTab] = useState<string>("ai-engineering");
@@ -502,7 +504,7 @@ export default function Home() {
       {/* ==========================================
           1. HEADER / FLOATING NAVIGATION
           ========================================== */}
-      <header className="sticky top-0 z-50 w-full glass-panel border-b border-zinc-200 dark:border-white/[0.04]">
+      <header className="w-full glass-panel border-b border-zinc-200 dark:border-white/[0.04]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           
           {/* Logo / Brand */}
@@ -511,7 +513,7 @@ export default function Home() {
               <img src="/icon.png" alt="Osama Alam Logo" className="w-10 h-10 object-contain rounded-full" />
             </div>
             <div className="flex flex-col">
-              <span className="font-bold tracking-tight text-zinc-900 dark:text-white group-hover:text-emerald-500 dark:group-hover:text-emerald-400 transition-colors">Osama Alam</span>
+              <span className="font-bold tracking-tight dark:text-emerald-500 group-hover:text-emerald-500 dark:group-hover:text-emerald-400 transition-colors">Osama Alam</span>
               <span className="text-[10px] font-mono tracking-widest text-zinc-500 dark:text-zinc-400 uppercase">AI Architect & Founder</span>
             </div>
           </a>
@@ -539,18 +541,24 @@ export default function Home() {
               
               {playgroundsDropdownOpen && (
                 <div className="absolute right-0 top-full pt-1.5 z-50 animate-scale-up">
-                  <div className="w-44 rounded-xl border border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-[#07070a] shadow-xl p-1.5 flex flex-col gap-1">
+                  <div className="w-44 rounded-xl border  border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-[#07070a] shadow-xl p-1.5 flex flex-col gap-1">
                     <Link 
                       href="/agents" 
-                      className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-mono text-zinc-700 dark:text-zinc-300 hover:text-white hover:bg-emerald-500 dark:hover:bg-white/[0.03] transition-all"
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-mono dark:text-muted-foreground hover:text-white hover:bg-emerald-500 dark:hover:bg-white/[0.03] transition-all"
                     >
                       <span>⚡</span> Agent Sandbox
                     </Link>
                     <Link 
                       href="/rag" 
-                      className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-mono text-zinc-700 dark:text-zinc-300 hover:text-white hover:bg-purple-500 dark:hover:bg-white/[0.03] transition-all"
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-mono dark:text-muted-foreground hover:text-white hover:bg-purple-500 dark:hover:bg-white/[0.03] transition-all"
                     >
                       <span>🧠</span> RAG Sandbox
+                    </Link>
+                    <Link 
+                      href="/vision" 
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-mono dark:text-muted-foreground hover:text-white hover:bg-cyan-500 dark:hover:bg-white/[0.03] transition-all"
+                    >
+                      <span>👁️</span> Vision Sandbox
                     </Link>
                   </div>
                 </div>
@@ -632,35 +640,35 @@ export default function Home() {
             <a 
               href="#expertise" 
               onClick={() => setMobileMenuOpen(false)} 
-              className="text-zinc-700 dark:text-zinc-300 hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors py-2 block border-b border-zinc-100 dark:border-white/[0.02]"
+              className="text-zinc-700 dark:text-muted-foreground hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors py-2 block border-b border-zinc-100 dark:border-white/[0.02]"
             >
               Expertise
             </a>
             <a 
               href="#projects" 
               onClick={() => setMobileMenuOpen(false)} 
-              className="text-zinc-700 dark:text-zinc-300 hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors py-2 block border-b border-zinc-100 dark:border-white/[0.02]"
+              className="text-zinc-700 dark:text-muted-foreground hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors py-2 block border-b border-zinc-100 dark:border-white/[0.02]"
             >
               Case Studies
             </a>
             <a 
               href="#timeline" 
               onClick={() => setMobileMenuOpen(false)} 
-              className="text-zinc-700 dark:text-zinc-300 hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors py-2 block border-b border-zinc-100 dark:border-white/[0.02]"
+              className="text-zinc-700 dark:text-muted-foreground hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors py-2 block border-b border-zinc-100 dark:border-white/[0.02]"
             >
               Career Path
             </a>
             <a 
               href="#testimonials" 
               onClick={() => setMobileMenuOpen(false)} 
-              className="text-zinc-700 dark:text-zinc-300 hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors py-2 block border-b border-zinc-100 dark:border-white/[0.02]"
+              className="text-zinc-700 dark:text-muted-foreground hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors py-2 block border-b border-zinc-100 dark:border-white/[0.02]"
             >
               Testimonials
             </a>
             <a 
               href="#contact" 
               onClick={() => setMobileMenuOpen(false)} 
-              className="text-zinc-700 dark:text-zinc-300 hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors py-2 block border-b border-zinc-100 dark:border-white/[0.02]"
+              className="text-zinc-700 dark:text-muted-foreground hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors py-2 block border-b border-zinc-100 dark:border-white/[0.02]"
             >
               Contact
             </a>
@@ -678,12 +686,19 @@ export default function Home() {
             >
               🧠 RAG Sandbox
             </Link>
+            <Link 
+              href="/vision" 
+              onClick={() => setMobileMenuOpen(false)} 
+              className="text-cyan-500 hover:text-cyan-400 font-mono text-xs font-bold transition-colors py-2.5 block uppercase tracking-wider animate-pulse"
+            >
+              👁️ Vision Sandbox
+            </Link>
             <div className="flex gap-4 pt-4 border-t border-zinc-100 dark:border-white/[0.04]">
               <a 
                 href="https://www.linkedin.com/in/osamaalam-/" 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="flex-1 py-3 bg-zinc-50 dark:bg-white/[0.03] hover:bg-zinc-100 dark:hover:bg-white/[0.06] text-zinc-700 dark:text-zinc-300 flex items-center justify-center gap-2 rounded-lg border border-zinc-200 dark:border-white/[0.05]"
+                className="flex-1 py-3 bg-zinc-50 dark:bg-white/[0.03] hover:bg-zinc-100 dark:hover:bg-white/[0.06] text-zinc-700 dark:text-muted-foreground flex items-center justify-center gap-2 rounded-lg border border-zinc-200 dark:border-white/[0.05]"
               >
                 <LinkedInLogo className="w-4 h-4 text-cyan-500 dark:text-cyan-400" /> LinkedIn
               </a>
@@ -691,7 +706,7 @@ export default function Home() {
                 href="https://www.upwork.com/freelancers/~01e71cf1957688ace7" 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="flex-1 py-3 bg-zinc-50 dark:bg-white/[0.03] hover:bg-zinc-100 dark:hover:bg-white/[0.06] text-zinc-700 dark:text-zinc-300 flex items-center justify-center gap-2 rounded-lg border border-zinc-200 dark:border-white/[0.05]"
+                className="flex-1 py-3 bg-zinc-50 dark:bg-white/[0.03] hover:bg-zinc-100 dark:hover:bg-white/[0.06] text-zinc-700 dark:text-muted-foreground flex items-center justify-center gap-2 rounded-lg border border-zinc-200 dark:border-white/[0.05]"
               >
                 <UpworkLogo className="w-4 h-4 text-emerald-500 dark:text-emerald-400" /> Upwork
               </a>
@@ -1194,7 +1209,7 @@ export default function Home() {
                       <h3 className="text-3xl font-extrabold text-zinc-900 dark:text-white leading-tight">
                         {p.title}
                       </h3>
-                      <p className="text-zinc-500 dark:text-zinc-300 font-medium italic text-sm">
+                      <p className="text-zinc-500 dark:text-muted-foreground font-medium italic text-sm">
                         {p.subtitle}
                       </p>
                     </div>
@@ -1219,7 +1234,7 @@ export default function Home() {
                       </span>
                       <ul className="flex flex-col gap-2.5 text-sm">
                         {p.highlights.map((h, i) => (
-                          <li key={i} className="flex items-start gap-2.5 text-zinc-700 dark:text-zinc-300">
+                          <li key={i} className="flex items-start gap-2.5 text-zinc-700 dark:text-muted-foreground">
                             <span className="text-emerald-500 mt-1 font-mono text-xs">✔</span>
                             <span>{h}</span>
                           </li>
@@ -1232,7 +1247,7 @@ export default function Home() {
                       {p.tech.map((t, idx) => (
                         <span 
                           key={idx} 
-                          className="px-3 py-1 rounded bg-zinc-200/60 dark:bg-zinc-900 border border-zinc-300 dark:border-white/[0.05] font-mono text-[10px] tracking-wide text-zinc-800 dark:text-zinc-300 font-semibold"
+                          className="px-3 py-1 rounded bg-zinc-200/60 border border-zinc-300 dark:border-white/[0.05] font-mono text-[10px] tracking-wide text-zinc-800 dark:text-muted-foreground font-semibold"
                         >
                           {t}
                         </span>
@@ -1299,7 +1314,7 @@ export default function Home() {
                     {/* Bullet achievement outputs */}
                     <ul className="flex flex-col gap-2.5 text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed mb-4">
                       {item.highlights.map((h, i) => (
-                        <li key={i} className="flex items-start gap-2 text-zinc-700 dark:text-zinc-300">
+                        <li key={i} className="flex items-start gap-2 text-zinc-700 dark:text-muted-foreground">
                           <span className="text-zinc-400 mt-1 font-mono text-xs">➔</span>
                           <span>{h}</span>
                         </li>
@@ -1312,7 +1327,7 @@ export default function Home() {
                         {item.tech.map((t, i) => (
                           <span 
                             key={i} 
-                            className="px-2.5 py-0.5 rounded bg-zinc-200/60 dark:bg-zinc-900 border border-zinc-300/80 dark:border-white/[0.04] font-mono text-[9px] tracking-wide text-zinc-800 dark:text-zinc-300 font-semibold"
+                            className="px-2.5 py-0.5 rounded bg-zinc-200/60  border border-zinc-300/80 dark:border-white/[0.04] font-mono text-[9px] tracking-wide text-zinc-800 dark:text-white font-semibold"
                           >
                             {t}
                           </span>
@@ -1447,7 +1462,7 @@ export default function Home() {
                   </div>
 
                   {/* Feedback comment */}
-                  <p className="text-zinc-700 dark:text-zinc-300 text-xs sm:text-sm leading-relaxed italic">
+                  <p className="text-zinc-700 dark:text-muted-foreground text-xs sm:text-sm leading-relaxed italic">
                     &quot;{t.content}&quot;
                   </p>
                 </div>
@@ -1590,7 +1605,7 @@ export default function Home() {
                       <select 
                         value={contactForm.service}
                         onChange={(e) => setContactForm({ ...contactForm, service: e.target.value })}
-                        className="px-3.5 py-2 rounded bg-zinc-900 border border-white/[0.08] text-zinc-300 font-sans text-xs focus:outline-none focus:border-emerald-500/50 cursor-pointer"
+                        className="px-3.5 py-2 rounded bg-zinc-900 border border-white/[0.08] text-muted-foreground font-sans text-xs focus:outline-none focus:border-emerald-500/50 cursor-pointer"
                       >
                         <option value="Healthcare AI Systems Integration">Healthcare AI Systems Integration</option>
                         <option value="Multi-Agent System Orchestration">Multi-Agent System Orchestration</option>

@@ -11,7 +11,7 @@ const state: GlobalLimitState = {
 
 const GLOBAL_DAILY_CAP = 500; // Absolute maximum API queries allowed across the entire site per day
 const IP_DAILY_LIMIT = 15; // Maximum queries allowed per unique IP address per day
-const WHITELISTED_IPS = ["34.132.233.106", "104.28.14.92"];
+const WHITELISTED_IPS = ["34.132.233.106"];
 
 // Memory registry to track query frequencies per IP address
 const ipRegistry: Record<string, { count: number; date: string }> = {};

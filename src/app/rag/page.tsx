@@ -61,14 +61,22 @@ export default function RAGPlayground() {
   const [pdfjsLoaded, setPdfjsLoaded] = useState<boolean>(false);
   const [isClient, setIsClient] = useState<boolean>(false);
   
-  // Theme state synced with portfolio local preference
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
-    if (typeof window !== "undefined") {
-      const savedTheme = localStorage.getItem("portfolio-theme");
-      return savedTheme !== "light";
+  // Theme state initialized to a static default (dark-first) to prevent SSR hydration mismatches
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
+
+  // Load local storage theme safely after mounting has successfully completed on client
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("portfolio-theme");
+    if (savedTheme === "light") {
+      setIsDarkMode(false);
+    } else if (savedTheme === "dark") {
+      setIsDarkMode(true);
+    } else {
+      // Respect browser/system preferred color scheme on first visit
+      const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      setIsDarkMode(systemPrefersDark);
     }
-    return true;
-  });
+  }, []);
 
   useEffect(() => {
     if (isDarkMode) {
@@ -86,7 +94,7 @@ export default function RAGPlayground() {
   const [requestCount, setRequestCount] = useState<number>(0);
   const [isVipUrl, setIsVipUrl] = useState<boolean>(false);
   const maxRequests = 5;
-  const isWhitelisted = clientIP === "34.132.233.106" || clientIP === "104.28.14.92" || isVipUrl;
+  const isWhitelisted = clientIP === "34.132.233.106" || isVipUrl;
 
   // PDF upload & ingestion states
   const [uploading, setUploading] = useState<boolean>(false);
@@ -157,10 +165,22 @@ export default function RAGPlayground() {
     }
   }, []);
 
-  // Fetch Public IP
+  // Fetch Public IP securely via CORS-free backend proxy (Rule 8)
   const fetchIPAddress = async () => {
     try {
-      const res = await fetch("https://ipapi.co/json/");
+      let clientPublicIp = "";
+      try {
+        const ipifyRes = await fetch("https://api.ipify.org?format=json");
+        if (ipifyRes.ok) {
+          const ipifyData = await ipifyRes.json();
+          clientPublicIp = ipifyData.ip || "";
+        }
+      } catch (e) {
+        console.warn("ipify lookup failed, falling back to backend IP detection", e);
+      }
+
+      const backendUrl = clientPublicIp ? `/api/vision/ip?ip=${clientPublicIp}` : "/api/vision/ip";
+      const res = await fetch(backendUrl);
       if (res.ok) {
         const data = await res.json();
         setClientIP(data.ip || "127.0.0.1");
@@ -176,9 +196,9 @@ export default function RAGPlayground() {
         throw new Error();
       }
     } catch {
-      // Fallback
-      setClientIP("104.28.14.92");
-      setIpLocation("Active Gateway Node");
+      // Secure Fallback (Rule 8)
+      setClientIP("0.0.0.0");
+      setIpLocation("Unknown Location");
       const stored = localStorage.getItem("rag-usage-fallback");
       if (stored) {
         setRequestCount(parseInt(stored, 10));
@@ -603,14 +623,14 @@ export default function RAGPlayground() {
       {/* ==========================================
           HEADER
           ========================================== */}
-      <header className="sticky top-0 z-50 w-full glass-panel border-b border-zinc-200 dark:border-white/[0.04]">
+      <header className="w-full glass-panel border-b border-zinc-200 dark:border-white/[0.04]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 group">
             <div className="relative w-10 h-10 rounded-full flex items-center justify-center transition-transform group-hover:scale-105 overflow-hidden border border-zinc-800">
               <img src="/icon.png" alt="Osama Alam Logo" className="w-10 h-10 object-contain rounded-full" />
             </div>
             <div className="flex flex-col">
-              <span className="font-bold tracking-tight text-zinc-900 dark:text-white group-hover:text-emerald-500 dark:group-hover:text-emerald-400 transition-colors">Osama Alam</span>
+              <span className="font-bold tracking-tight text-emerald-500 group-hover:text-emerald-500 dark:group-hover:text-emerald-400 transition-colors">Osama Alam</span>
               <span className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase">AI Architect & Founder</span>
             </div>
           </Link>
@@ -626,8 +646,9 @@ export default function RAGPlayground() {
                 {isDarkMode ? "🌙" : "☀️"}
               </span>
             </button>
+            <Link href="/vision" className="text-cyan-500 hover:text-cyan-400 font-semibold transition-colors mr-2">👁️ Vision Sandbox</Link>
             <Link href="/agents" className="text-emerald-500 hover:text-emerald-400 font-semibold transition-colors mr-2">⚡ Agent Sandbox</Link>
-            <Link href="/" className="text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors">← Back to Portfolio</Link>
+            <Link href="/" className="text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-emerald-400 transition-colors">← Back to Portfolio</Link>
           </nav>
         </div>
       </header>
@@ -659,11 +680,11 @@ export default function RAGPlayground() {
             </div>
             <div className="flex justify-between">
               <span>Client IP:</span>
-              <span className="text-zinc-300 font-bold">{clientIP}</span>
+              <span className="text-muted-foreground font-bold">{clientIP}</span>
             </div>
             <div className="flex justify-between">
               <span>Secure Node:</span>
-              <span className="text-zinc-300 font-bold line-clamp-1">{ipLocation}</span>
+              <span className="text-muted-foreground font-bold line-clamp-1">{ipLocation}</span>
             </div>
             <div className="flex flex-col gap-1 mt-2 pt-2 border-t border-white/[0.05]">
               <div className="flex justify-between text-[11px] font-bold">
@@ -815,7 +836,7 @@ export default function RAGPlayground() {
 
                     <div className="flex flex-col gap-1">
                       <span className="font-mono text-[10px] text-purple-300 font-semibold uppercase">Decompiled Raw Text Chunk:</span>
-                      <div className="p-3 rounded bg-zinc-100 dark:bg-black/60 border border-zinc-200 dark:border-white/[0.03] leading-relaxed italic max-h-[120px] overflow-y-auto no-scrollbar font-serif text-zinc-700 dark:text-zinc-300">
+                      <div className="p-3 rounded bg-zinc-100 dark:bg-black/60 border border-zinc-200 dark:border-white/[0.03] leading-relaxed italic max-h-[120px] overflow-y-auto no-scrollbar font-serif text-zinc-700 dark:text-muted-foreground">
                         "{selectedChunk.text}"
                       </div>
                     </div>
@@ -887,7 +908,7 @@ export default function RAGPlayground() {
                           <span className="font-mono text-[9px] text-zinc-500 uppercase">
                             {m.role === "user" ? "Client Guest" : `Osama's RAG Core ${m.latency ? `(in ${m.latency}ms)` : ""}`}
                           </span>
-                          <div className={`p-3.5 rounded-xl text-xs leading-relaxed font-sans ${m.role === "user" ? "bg-purple-600/10 border border-purple-500/20 text-purple-100" : "bg-[#0a0a0c] border border-white/[0.05] text-zinc-300"}`}>
+                          <div className={`p-3.5 rounded-xl text-xs leading-relaxed font-sans ${m.role === "user" ? "bg-purple-600/10 border border-purple-500/20 text-purple-100" : "bg-[#0a0a0c] border border-white/[0.05] text-muted-foreground"}`}>
                             {m.content.split("\n\n").map((para, pIdx) => (
                               <p key={pIdx} className="mb-2 last:mb-0 whitespace-pre-line">{para}</p>
                             ))}
