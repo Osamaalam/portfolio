@@ -89,7 +89,7 @@ export async function POST(request: Request) {
     }
 
     if (engine === "yolo") {
-      const tempDir = "C:\\Users\\HP\\AppData\\Local\\Temp\\opencode";
+      const tempDir = path.join(os.tmpdir(), "opencode");
       if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
       
       tempFilePath = path.join(tempDir, `vision_${Date.now()}_${file.name.replace(/[^\w.-]/g, "")}`);

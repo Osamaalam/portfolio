@@ -30,9 +30,9 @@ export default function MRISimulator() {
   return (
     <div className="flex-1 flex flex-col justify-between min-h-full">
       <div className="flex flex-col gap-3">
-        <div className="flex items-center justify-between text-[11px] text-zinc-400 font-mono">
-          <span>Modality: Vision Pathology Identifier</span>
-          <span className="text-cyan-400 font-bold">ResNet-50 Node</span>
+        <div className="flex items-center justify-between text-[11px] text-zinc-400 font-mono pb-1 border-b border-white/[0.04]">
+          <span className="whitespace-nowrap truncate">Vision Pathology Identifier</span>
+          <span className="text-cyan-400 font-bold whitespace-nowrap shrink-0">ResNet-50</span>
         </div>
         
         <div className="flex gap-4 items-center p-3 rounded-lg bg-white/[0.02] border border-white/[0.04]">

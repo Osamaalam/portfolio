@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import axios from "axios";
 import { incrementAndCheckGlobalLimit, getClientIP } from "@/lib/globalLimiter";
 
 export async function POST(request: Request) {
@@ -52,38 +53,37 @@ export async function POST(request: Request) {
     const baseUrl = "https://n8n.osamaalam.com/webhook/e99b456d-21d3-4553-92b3-e63809712cac";
     const fullUrl = `${baseUrl}?name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&service=${encodeURIComponent(service)}&message=${encodeURIComponent(message)}&source=Portfolio_Website_Hub&timestamp=${encodeURIComponent(new Date().toISOString())}`;
 
-    // Construct Basic Authorization header securely
-    const webhookUser = process.env.N8N_WEBHOOK_USER || "osamaresponse";
-    const webhookPass = process.env.N8N_WEBHOOK_PASS || "paskjewi&hw6";
-    const authString = Buffer.from(`${webhookUser}:${webhookPass}`).toString("base64");
+    // Construct Basic Authorization header securely from environment variables
+    const webhookUser = process.env.N8N_WEBHOOK_USER;
+    const webhookPass = process.env.N8N_WEBHOOK_PASS;
+    const headers: Record<string, string> = {
+      "Accept": "application/json"
+    };
 
-    console.log(`Forwarding payload to n8n via native fetch API...`);
-    
-    // Perform standard HTTP request securely and portably
-    const response = await fetch(fullUrl, {
-      method: "GET",
-      headers: {
-        "Authorization": `Basic ${authString}`,
-        "Accept": "application/json"
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`n8n webhook responded with status ${response.status}`);
+    if (webhookUser && webhookPass) {
+      headers["Authorization"] = `Basic ${Buffer.from(`${webhookUser}:${webhookPass}`).toString("base64")}`;
     }
 
-    const responseText = await response.text();
-    console.log("n8n native forward response successful:", responseText.trim());
+    // Forward payload to n8n webhook using axios with safe timeout
+    try {
+      const response = await axios.get(fullUrl, {
+        headers,
+        timeout: 5000
+      });
+      console.log("n8n webhook response status:", response.status);
+    } catch (webhookError: any) {
+      console.warn("n8n webhook notification failed or offline:", webhookError.message);
+    }
 
     return NextResponse.json({
       success: true,
-      message: "Lead processed and queued successfully via n8n",
+      message: "Lead processed and received successfully",
       timestamp: new Date().toISOString()
     });
-  } catch (error) {
-    console.error("Contact API Error:", error);
+  } catch (error: any) {
+    console.error("Contact API Error:", error?.message || error);
     return NextResponse.json(
-      { success: false, error: "Internal server error" },
+      { success: false, error: "An error occurred while processing your request" },
       { status: 500 }
     );
   }

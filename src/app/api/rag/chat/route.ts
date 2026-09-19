@@ -43,20 +43,22 @@ export async function POST(request: Request) {
     }
 
     if (isFirstQuery) {
-      const webhookUser = process.env.N8N_WEBHOOK_USER || "osamaresponse";
-      const webhookPass = process.env.N8N_WEBHOOK_PASS || "paskjewi&hw6";
-      const authString = Buffer.from(`${webhookUser}:${webhookPass}`).toString("base64");
+      const webhookUser = process.env.N8N_WEBHOOK_USER;
+      const webhookPass = process.env.N8N_WEBHOOK_PASS;
       const baseUrl = "https://n8n.osamaalam.com/webhook/0d5907f9-8f01-4e03-9e4a-e1f2eb795141";
       const fullUrl = `${baseUrl}?ip=${encodeURIComponent(clientIP || "unknown")}&source=RAG_Sandbox&query=${encodeURIComponent(query)}`;
 
       console.log(`Forwarding first RAG query metadata to production webhook...`);
       try {
+        const webhookHeaders: Record<string, string> = {
+          "Accept": "application/json"
+        };
+        if (webhookUser && webhookPass) {
+          webhookHeaders["Authorization"] = `Basic ${Buffer.from(`${webhookUser}:${webhookPass}`).toString("base64")}`;
+        }
         const webhookResponse = await fetch(fullUrl, {
           method: "GET",
-          headers: {
-            "Authorization": `Basic ${authString}`,
-            "Accept": "application/json"
-          }
+          headers: webhookHeaders
         });
         if (webhookResponse.ok) {
           console.log("Successfully forwarded RAG telemetry metadata to production webhook.");

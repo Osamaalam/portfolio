@@ -12,6 +12,7 @@ const state: GlobalLimitState = {
 const GLOBAL_DAILY_CAP = 500; // Absolute maximum API queries allowed across the entire site per day
 const IP_DAILY_LIMIT = 15; // Maximum queries allowed per unique IP address per day
 const WHITELISTED_IPS = ["34.132.233.106"];
+const isDevelopment = process.env.NODE_ENV === "development";
 
 // Memory registry to track query frequencies per IP address
 const ipRegistry: Record<string, { count: number; date: string }> = {};
@@ -32,8 +33,8 @@ export function incrementAndCheckGlobalLimit(ipAddress?: string): { allowed: boo
 
   // 2. Enforce IP-based rate limiting
   let clientIP = ipAddress || "unknown";
-  if (clientIP === "::1") clientIP = "127.0.0.1"; // Normalize IPv6 loopback (Rule 8)
-  const isWhitelisted = WHITELISTED_IPS.includes(clientIP);
+  if (clientIP === "::1" || clientIP === "::ffff:127.0.0.1") clientIP = "127.0.0.1"; // Normalize IPv6 and IPv4-mapped loopback (Rule 8)
+  const isWhitelisted = WHITELISTED_IPS.includes(clientIP) || (isDevelopment && clientIP === "127.0.0.1");
 
   if (clientIP !== "unknown" && !isWhitelisted) {
     if (!ipRegistry[clientIP] || ipRegistry[clientIP].date !== today) {
@@ -74,9 +75,10 @@ export function incrementAndCheckGlobalLimit(ipAddress?: string): { allowed: boo
 export function getIPCount(ipAddress?: string): number {
   const today = new Date().toISOString().split("T")[0];
   let clientIP = ipAddress || "unknown";
-  if (clientIP === "::1") clientIP = "127.0.0.1"; // Normalize IPv6 loopback (Rule 8)
+  if (clientIP === "::1" || clientIP === "::ffff:127.0.0.1") clientIP = "127.0.0.1"; // Normalize IPv6 and IPv4-mapped loopback (Rule 8)
+  const isWhitelisted = WHITELISTED_IPS.includes(clientIP) || (isDevelopment && clientIP === "127.0.0.1");
 
-  if (clientIP === "unknown" || WHITELISTED_IPS.includes(clientIP)) {
+  if (clientIP === "unknown" || isWhitelisted) {
     return 0; // Whitelisted or invalid IPs have 0 counted usage
   }
 

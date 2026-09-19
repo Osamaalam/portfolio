@@ -6,6 +6,7 @@ import { UpworkLogo, LinkedInLogo } from "@/components/ui/icons";
 import AgentSimulator from "@/components/simulators/AgentSimulator";
 import MRISimulator from "@/components/simulators/MRISimulator";
 import RAGSimulator from "@/components/simulators/RAGSimulator";
+import NeuralSimulator from "@/components/simulators/NeuralSimulator";
 
 // ==========================================
 // TYPES & DATA DEFINITIONS
@@ -316,7 +317,7 @@ export default function Home() {
   const [playgroundsDropdownOpen, setPlaygroundsDropdownOpen] = useState<boolean>(false);
   
   // Interactive Live Dashboard States
-  const [consoleMode, setConsoleMode] = useState<"agents" | "mri" | "rag">("agents");
+  const [consoleMode, setConsoleMode] = useState<"neural" | "agents" | "mri" | "rag">("neural");
 
   // Contact Form State
   const [contactForm, setContactForm] = useState({
@@ -549,6 +550,12 @@ export default function Home() {
                       <span>⚡</span> Agent Sandbox
                     </Link>
                     <Link 
+                      href="/neural-evolution" 
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-mono text-zinc-700 dark:text-muted-foreground hover:text-white hover:bg-pink-500 dark:hover:bg-white/[0.03] transition-all"
+                    >
+                      <span>🧬</span> Neuro-Evolution
+                    </Link>
+                    <Link 
                       href="/rag" 
                       className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-mono text-zinc-700 dark:text-muted-foreground hover:text-white hover:bg-purple-500 dark:hover:bg-white/[0.03] transition-all"
                     >
@@ -565,6 +572,12 @@ export default function Home() {
                       className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-mono text-zinc-700 dark:text-muted-foreground hover:text-white hover:bg-amber-500 dark:hover:bg-white/[0.03] transition-all"
                     >
                       <span>🎙️</span> Audio Sandbox
+                    </Link>
+                    <Link 
+                      href="/mcp" 
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-mono text-zinc-700 dark:text-muted-foreground hover:text-white hover:bg-blue-500 dark:hover:bg-white/[0.03] transition-all"
+                    >
+                      <span>🔌</span> MCP Sandbox
                     </Link>
                   </div>
                 </div>
@@ -686,6 +699,13 @@ export default function Home() {
               ⚡ Agent Sandbox
             </Link>
             <Link 
+              href="/neural-evolution" 
+              onClick={() => setMobileMenuOpen(false)} 
+              className="text-pink-500 hover:text-pink-400 font-mono text-xs font-bold transition-colors py-2.5 block uppercase tracking-wider animate-pulse"
+            >
+              🧬 Neuro-Evolution
+            </Link>
+            <Link 
               href="/rag" 
               onClick={() => setMobileMenuOpen(false)} 
               className="text-purple-500 hover:text-purple-400 font-mono text-xs font-bold transition-colors py-2.5 block uppercase tracking-wider animate-pulse"
@@ -705,6 +725,13 @@ export default function Home() {
               className="text-amber-500 hover:text-amber-400 font-mono text-xs font-bold transition-colors py-2.5 block uppercase tracking-wider animate-pulse"
             >
               🎙️ Audio Sandbox
+            </Link>
+            <Link 
+              href="/mcp" 
+              onClick={() => setMobileMenuOpen(false)} 
+              className="text-blue-500 hover:text-blue-400 font-mono text-xs font-bold transition-colors py-2.5 block uppercase tracking-wider animate-pulse"
+            >
+              🔌 MCP Sandbox
             </Link>
             <div className="flex gap-4 pt-4 border-t border-zinc-100 dark:border-white/[0.04]">
               <a 
@@ -838,25 +865,51 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* Simulated Mode Select Tabs */}
-                <div className="flex border-b border-white/[0.05] bg-[#09090c] font-mono text-[10px] sm:text-xs text-zinc-400 select-none">
+                {/* Simulated Mode Select Tabs - Perfectly Aligned 4-Column Grid */}
+                <div className="grid grid-cols-4 border-b border-white/[0.05] bg-[#09090c] font-mono text-[10px] sm:text-xs text-zinc-400 select-none">
+                  <button 
+                    onClick={() => setConsoleMode("neural")}
+                    className={`h-10 px-1 border-r border-white/[0.05] flex items-center justify-center gap-1.5 whitespace-nowrap transition-all border-b-2 ${
+                      consoleMode === "neural" 
+                        ? "bg-[#070709] text-cyan-400 border-b-cyan-400 font-semibold" 
+                        : "border-b-transparent hover:bg-white/[0.02] hover:text-zinc-200"
+                    }`}
+                  >
+                    <span className="text-xs">🧬</span>
+                    <span className="truncate">Neural Lab</span>
+                  </button>
                   <button 
                     onClick={() => setConsoleMode("agents")}
-                    className={`flex-1 py-2.5 border-r border-white/[0.05] flex items-center justify-center gap-1.5 transition-all ${consoleMode === "agents" ? "bg-[#070709] text-emerald-400 border-b-2 border-b-emerald-400 font-semibold" : "hover:bg-white/[0.02]"}`}
+                    className={`h-10 px-1 border-r border-white/[0.05] flex items-center justify-center gap-1.5 whitespace-nowrap transition-all border-b-2 ${
+                      consoleMode === "agents" 
+                        ? "bg-[#070709] text-emerald-400 border-b-emerald-400 font-semibold" 
+                        : "border-b-transparent hover:bg-white/[0.02] hover:text-zinc-200"
+                    }`}
                   >
-                    <span>🤖</span> Agent Loop
+                    <span className="text-xs">🤖</span>
+                    <span className="truncate">Agent Loop</span>
                   </button>
                   <button 
                     onClick={() => setConsoleMode("mri")}
-                    className={`flex-1 py-2.5 border-r border-white/[0.05] flex items-center justify-center gap-1.5 transition-all ${consoleMode === "mri" ? "bg-[#070709] text-cyan-400 border-b-2 border-b-cyan-400 font-semibold" : "hover:bg-white/[0.02]"}`}
+                    className={`h-10 px-1 border-r border-white/[0.05] flex items-center justify-center gap-1.5 whitespace-nowrap transition-all border-b-2 ${
+                      consoleMode === "mri" 
+                        ? "bg-[#070709] text-cyan-400 border-b-cyan-400 font-semibold" 
+                        : "border-b-transparent hover:bg-white/[0.02] hover:text-zinc-200"
+                    }`}
                   >
-                    <span>🧠</span> Scan Analytics
+                    <span className="text-xs">👁️</span>
+                    <span className="truncate">Vision AI</span>
                   </button>
                   <button 
                     onClick={() => setConsoleMode("rag")}
-                    className={`flex-1 flex items-center justify-center gap-1.5 transition-all ${consoleMode === "rag" ? "bg-[#070709] text-purple-400 border-b-2 border-b-purple-400 font-semibold" : "hover:bg-white/[0.02]"}`}
+                    className={`h-10 px-1 flex items-center justify-center gap-1.5 whitespace-nowrap transition-all border-b-2 ${
+                      consoleMode === "rag" 
+                        ? "bg-[#070709] text-purple-400 border-b-purple-400 font-semibold" 
+                        : "border-b-transparent hover:bg-white/[0.02] hover:text-zinc-200"
+                    }`}
                   >
-                    <span>📂</span> Document RAG
+                    <span className="text-xs">📂</span>
+                    <span className="truncate">Doc RAG</span>
                   </button>
                 </div>
 
@@ -865,6 +918,7 @@ export default function Home() {
                   {consoleMode === "agents" && <AgentSimulator />}
                   {consoleMode === "mri" && <MRISimulator />}
                   {consoleMode === "rag" && <RAGSimulator />}
+                  {consoleMode === "neural" && <NeuralSimulator />}
                 </div>
 
               </div>

@@ -40,10 +40,22 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# opencode tooling
+# AI and agent tooling
 /.agents/
+/.claude/
+/.opencode/
+/references/
+/scripts/
 /skills-lock.json
 /server.log
+*.log
+next_stderr.log
+next_stdout.log
+
+# Offline datasets and checkpoint artifacts
+/ICD-10/
+src/scripts/seed_checkpoint.txt
 
 # weights and heavy binary assets
 mobileclip_blt.ts
+src/assets/mobileclip_blt.bin

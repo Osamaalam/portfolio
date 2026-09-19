@@ -640,9 +640,11 @@ export default function OcrSandbox() {
                 {isDarkMode ? "🌙" : "☀️"}
               </span>
             </button>
+            <Link href="/neural-evolution" className="text-pink-500 hover:text-pink-400 font-semibold transition-colors mr-1">🧬 Neural Lab</Link>
             <Link href="/agents" className="text-emerald-500 hover:text-emerald-400 font-semibold transition-colors mr-1">⚡ Agent Sandbox</Link>
             <Link href="/rag" className="text-purple-500 hover:text-purple-400 font-semibold transition-colors mr-1">🧠 RAG Sandbox</Link>
             <Link href="/audio" className="text-amber-500 hover:text-amber-400 font-semibold transition-colors mr-1">🎙️ Audio Sandbox</Link>
+            <Link href="/mcp" className="text-blue-500 hover:text-blue-400 font-semibold transition-colors mr-1">🔌 MCP Sandbox</Link>
             <Link href="/" className="text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-emerald-400 transition-colors">← Back to Portfolio</Link>
           </nav>
 
@@ -677,6 +679,13 @@ export default function OcrSandbox() {
         {mobileMenuOpen && (
           <div className="md:hidden px-4 pt-2 pb-6 border-t border-zinc-200 dark:border-white/[0.04] bg-[#ffffff] dark:bg-[#050507] flex flex-col gap-4 animate-fade-in z-50 relative">
             <Link 
+              href="/neural-evolution" 
+              onClick={() => setMobileMenuOpen(false)} 
+              className="text-pink-500 hover:text-pink-400 font-mono text-xs font-bold transition-colors py-2.5 block uppercase tracking-wider border-b border-zinc-100 dark:border-white/[0.02]"
+            >
+              🧬 Neural Lab
+            </Link>
+            <Link 
               href="/agents" 
               onClick={() => setMobileMenuOpen(false)} 
               className="text-emerald-500 hover:text-emerald-400 font-mono text-xs font-bold transition-colors py-2.5 block uppercase tracking-wider border-b border-zinc-100 dark:border-white/[0.02]"
@@ -696,6 +705,13 @@ export default function OcrSandbox() {
               className="text-amber-500 hover:text-amber-400 font-mono text-xs font-bold transition-colors py-2.5 block uppercase tracking-wider border-b border-zinc-100 dark:border-white/[0.02]"
             >
               🎙️ Audio Sandbox
+            </Link>
+            <Link 
+              href="/mcp" 
+              onClick={() => setMobileMenuOpen(false)} 
+              className="text-blue-500 hover:text-blue-400 font-mono text-xs font-bold transition-colors py-2.5 block uppercase tracking-wider border-b border-zinc-100 dark:border-white/[0.02]"
+            >
+              🔌 MCP Sandbox
             </Link>
             <Link 
               href="/" 
