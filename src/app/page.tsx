@@ -7,6 +7,7 @@ import AgentSimulator from "@/components/simulators/AgentSimulator";
 import MRISimulator from "@/components/simulators/MRISimulator";
 import RAGSimulator from "@/components/simulators/RAGSimulator";
 import NeuralSimulator from "@/components/simulators/NeuralSimulator";
+import NCASimulator from "@/components/simulators/NCASimulator";
 
 // ==========================================
 // TYPES & DATA DEFINITIONS
@@ -317,7 +318,7 @@ export default function Home() {
   const [playgroundsDropdownOpen, setPlaygroundsDropdownOpen] = useState<boolean>(false);
   
   // Interactive Live Dashboard States
-  const [consoleMode, setConsoleMode] = useState<"neural" | "agents" | "mri" | "rag">("neural");
+  const [consoleMode, setConsoleMode] = useState<"nca" | "neural" | "agents" | "mri" | "rag">("nca");
 
   // Contact Form State
   const [contactForm, setContactForm] = useState({
@@ -550,6 +551,12 @@ export default function Home() {
                       <span>⚡</span> Agent Sandbox
                     </Link>
                     <Link 
+                      href="/nca" 
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-mono text-zinc-700 dark:text-muted-foreground hover:text-white hover:bg-emerald-500 dark:hover:bg-white/[0.03] transition-all"
+                    >
+                      <span>🧫</span> NCA Bio-Lab
+                    </Link>
+                    <Link 
                       href="/neural-evolution" 
                       className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-mono text-zinc-700 dark:text-muted-foreground hover:text-white hover:bg-pink-500 dark:hover:bg-white/[0.03] transition-all"
                     >
@@ -691,6 +698,13 @@ export default function Home() {
             >
               Contact
             </a>
+            <Link 
+              href="/nca" 
+              onClick={() => setMobileMenuOpen(false)} 
+              className="text-emerald-400 hover:text-emerald-300 font-mono text-xs font-bold transition-colors py-2.5 block uppercase tracking-wider animate-pulse"
+            >
+              🧫 NCA Bio-Lab
+            </Link>
             <Link 
               href="/agents" 
               onClick={() => setMobileMenuOpen(false)} 
@@ -865,44 +879,55 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* Simulated Mode Select Tabs - Perfectly Aligned 4-Column Grid */}
-                <div className="grid grid-cols-4 border-b border-white/[0.05] bg-[#09090c] font-mono text-[10px] sm:text-xs text-zinc-400 select-none">
+                {/* Simulated Mode Select Tabs - Perfectly Aligned 5-Column Grid */}
+                <div className="grid grid-cols-5 border-b border-white/[0.05] bg-[#09090c] font-mono text-[9px] sm:text-xs text-zinc-400 select-none">
+                  <button 
+                    onClick={() => setConsoleMode("nca")}
+                    className={`h-10 px-1 border-r border-white/[0.05] flex items-center justify-center gap-1 sm:gap-1.5 whitespace-nowrap transition-all border-b-2 ${
+                      consoleMode === "nca" 
+                        ? "bg-[#070709] text-emerald-400 border-b-emerald-400 font-semibold" 
+                        : "border-b-transparent hover:bg-white/[0.02] hover:text-zinc-200"
+                    }`}
+                  >
+                    <span className="text-xs">🧫</span>
+                    <span className="truncate">NCA Bio</span>
+                  </button>
                   <button 
                     onClick={() => setConsoleMode("neural")}
-                    className={`h-10 px-1 border-r border-white/[0.05] flex items-center justify-center gap-1.5 whitespace-nowrap transition-all border-b-2 ${
+                    className={`h-10 px-1 border-r border-white/[0.05] flex items-center justify-center gap-1 sm:gap-1.5 whitespace-nowrap transition-all border-b-2 ${
                       consoleMode === "neural" 
                         ? "bg-[#070709] text-cyan-400 border-b-cyan-400 font-semibold" 
                         : "border-b-transparent hover:bg-white/[0.02] hover:text-zinc-200"
                     }`}
                   >
                     <span className="text-xs">🧬</span>
-                    <span className="truncate">Neural Lab</span>
+                    <span className="truncate">Neural</span>
                   </button>
                   <button 
                     onClick={() => setConsoleMode("agents")}
-                    className={`h-10 px-1 border-r border-white/[0.05] flex items-center justify-center gap-1.5 whitespace-nowrap transition-all border-b-2 ${
+                    className={`h-10 px-1 border-r border-white/[0.05] flex items-center justify-center gap-1 sm:gap-1.5 whitespace-nowrap transition-all border-b-2 ${
                       consoleMode === "agents" 
                         ? "bg-[#070709] text-emerald-400 border-b-emerald-400 font-semibold" 
                         : "border-b-transparent hover:bg-white/[0.02] hover:text-zinc-200"
                     }`}
                   >
                     <span className="text-xs">🤖</span>
-                    <span className="truncate">Agent Loop</span>
+                    <span className="truncate">Agents</span>
                   </button>
                   <button 
                     onClick={() => setConsoleMode("mri")}
-                    className={`h-10 px-1 border-r border-white/[0.05] flex items-center justify-center gap-1.5 whitespace-nowrap transition-all border-b-2 ${
+                    className={`h-10 px-1 border-r border-white/[0.05] flex items-center justify-center gap-1 sm:gap-1.5 whitespace-nowrap transition-all border-b-2 ${
                       consoleMode === "mri" 
                         ? "bg-[#070709] text-cyan-400 border-b-cyan-400 font-semibold" 
                         : "border-b-transparent hover:bg-white/[0.02] hover:text-zinc-200"
                     }`}
                   >
                     <span className="text-xs">👁️</span>
-                    <span className="truncate">Vision AI</span>
+                    <span className="truncate">Vision</span>
                   </button>
                   <button 
                     onClick={() => setConsoleMode("rag")}
-                    className={`h-10 px-1 flex items-center justify-center gap-1.5 whitespace-nowrap transition-all border-b-2 ${
+                    className={`h-10 px-1 flex items-center justify-center gap-1 sm:gap-1.5 whitespace-nowrap transition-all border-b-2 ${
                       consoleMode === "rag" 
                         ? "bg-[#070709] text-purple-400 border-b-purple-400 font-semibold" 
                         : "border-b-transparent hover:bg-white/[0.02] hover:text-zinc-200"
@@ -915,6 +940,7 @@ export default function Home() {
 
                 {/* Main Interactive Screen */}
                 <div className="px-5 pt-5 pb-8 h-[340px] overflow-y-auto no-scrollbar flex flex-col justify-between bg-[#050507]">
+                  {consoleMode === "nca" && <NCASimulator />}
                   {consoleMode === "agents" && <AgentSimulator />}
                   {consoleMode === "mri" && <MRISimulator />}
                   {consoleMode === "rag" && <RAGSimulator />}

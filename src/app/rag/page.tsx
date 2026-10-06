@@ -720,6 +720,7 @@ export default function RAGPlayground() {
                 {isDarkMode ? "🌙" : "☀️"}
               </span>
             </button>
+            <Link href="/nca" className="text-emerald-500 hover:text-emerald-400 font-semibold transition-colors mr-2">🧫 NCA Bio</Link>
             <Link href="/neural-evolution" className="text-pink-500 hover:text-pink-400 font-semibold transition-colors mr-2">🧬 Neural Lab</Link>
             <Link href="/vision" className="text-cyan-500 hover:text-cyan-400 font-semibold transition-colors mr-2">👁️ Vision Sandbox</Link>
             <Link href="/agents" className="text-emerald-500 hover:text-emerald-400 font-semibold transition-colors mr-2">⚡ Agent Sandbox</Link>
@@ -758,6 +759,13 @@ export default function RAGPlayground() {
         {/* Mobile Navigation Dropdown Menu */}
         {mobileMenuOpen && (
           <div className="md:hidden px-4 pt-2 pb-6 border-t border-zinc-200 dark:border-white/[0.04] bg-[#ffffff] dark:bg-[#050507] flex flex-col gap-4 animate-fade-in z-50 relative">
+            <Link 
+              href="/nca" 
+              onClick={() => setMobileMenuOpen(false)} 
+              className="text-emerald-400 hover:text-emerald-300 font-mono text-xs font-bold transition-colors py-2.5 block uppercase tracking-wider border-b border-zinc-100 dark:border-white/[0.02]"
+            >
+              🧫 NCA Bio-Lab
+            </Link>
             <Link 
               href="/neural-evolution" 
               onClick={() => setMobileMenuOpen(false)} 

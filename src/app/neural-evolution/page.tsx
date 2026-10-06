@@ -541,6 +541,12 @@ export default function NeuralEvolutionPage() {
 
             {/* Other Sandboxes */}
             <Link
+              href="/nca"
+              className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 transition-colors font-semibold"
+            >
+              🧫 NCA Bio
+            </Link>
+            <Link
               href="/agents"
               className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 transition-colors font-semibold"
             >
@@ -606,6 +612,9 @@ export default function NeuralEvolutionPage() {
           <div className="md:hidden px-4 pt-2 pb-6 border-t border-zinc-200 dark:border-white/[0.04] bg-white dark:bg-[#050507] flex flex-col gap-3 font-mono text-xs animate-fade-in z-50 relative">
             <Link href="/" className="text-zinc-600 dark:text-zinc-400 py-1.5">
               ← Return to Portfolio
+            </Link>
+            <Link href="/nca" className="text-emerald-400 py-1.5">
+              🧫 NCA Bio-Lab
             </Link>
             <Link href="/agents" className="text-emerald-500 py-1.5">
               ⚡ Agent Sandbox
